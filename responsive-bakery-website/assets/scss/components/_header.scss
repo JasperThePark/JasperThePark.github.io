@@ -1,0 +1,106 @@
+/*=============== HEADER & NAV ===============*/
+.header{
+   position: fixed;
+   width: 100%;
+   top: 0;
+   left: 0;
+   background-color: transparent;
+   z-index: var(--z-fixed);
+}
+
+.nav{
+   position: relative;
+   height: var(--header-height);
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+
+   &__logo{
+      color: var(--first-color);
+      font-size: var(--h2-font-size);
+      font-family: var(--second-font);
+      transition: color .4s;
+
+      &:hover{
+         color: var(--first-color-alt);
+      }
+   }
+   &__toggle,
+   &__close{
+      font-size: 1.5rem;
+      color: var(--title-color);
+      cursor: pointer;
+   }
+   // Navigation for mobile devices
+   &__menu{
+      @media screen and (max-width: 1150px){
+         position: fixed;
+         top: 0;
+         right: -100%;
+         background-color: hsla(0, 0%, 6%, .2);
+         backdrop-filter: blur(16px);
+         -webkit-backdrop-filter: blur(16px); // For safari
+         width: 80%;
+         height: 100%;
+         padding: 6rem 3rem 0;
+         transition: right .4s;
+      }
+   }
+   &__list{
+      display: flex;
+      flex-direction: column;
+      row-gap: 2.5rem;
+   }
+   &__link{
+      color: var(--title-color);
+      font-weight: var(--font-semi-bold);
+      transition: color .4s;
+
+      &:hover{
+         color: var(--first-color);
+      }
+   }
+   &__close,
+   &__img-1,
+   &__img-2{
+      position: absolute;
+   }
+   &__close{
+      top: 1rem;
+      right: 1.5rem;
+   }
+   &__img-1{
+      width: 80px;
+      top: 11rem;
+      right: .75rem;
+   }
+   &__img-2{
+      width: 60px;
+      top: 28rem;
+      left: 6rem;
+   }
+}
+
+/* Show menu */
+.show-menu{
+   right: 0;
+}
+
+/* Add blur header */
+.blur-header::after{
+   content: "";
+   position: absolute;
+   width: 1000%;
+   height: 100%;
+   background-color: hsla(0, 0%, 6%, .2);
+   backdrop-filter: blur(16px);
+   -webkit-backdrop-filter: blur(16px); // For safari
+   top: 0;
+   left: 0;
+   z-index: -1;
+}
+
+/* Active link */
+.active-link{
+   color: var(--first-color);
+}

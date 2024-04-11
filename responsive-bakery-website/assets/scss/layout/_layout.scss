@@ -1,0 +1,25 @@
+/*=============== REUSABLE CSS CLASSES ===============*/
+.container{
+   max-width: 1120px;
+   margin-inline: 1.5rem;
+}
+
+.grid{
+   display: grid;
+   gap: 1.5rem;
+}
+
+.section{
+   padding-block: 5rem 1rem;
+
+   &__title{
+      font-size: var(--bigger-font-size);
+      font-family: var(--second-font);
+      margin-bottom: 1.5rem;
+      text-align: center;
+   }
+}
+
+.main{
+   overflow: hidden; /* For animation ScrollReveal */
+}

@@ -1,0 +1,33 @@
+/*=============== NEW ===============*/
+.new{
+   &__container{
+      padding-top: 1.5rem;
+      row-gap: 3.5rem;
+   }
+   &__content{
+      row-gap: 2rem;
+   }
+   &__card{
+      display: flex;
+      column-gap: 1rem;
+      align-items: center;
+   }
+   &__img{
+      width: 150px;
+   }
+   &__title{
+      font-size: var(--h2-font-size);
+      font-family: var(--second-font);
+      color: var(--first-color);
+      margin-bottom: .5rem;
+   }
+   &__description{
+      font-size: var(--small-font-size);
+   }
+   &__card:nth-child(2) img{
+      order: -1;
+   }
+   &__button{
+      justify-self: center;
+   }
+}
