@@ -1,0 +1,70 @@
+/*=============== FOOTER ===============*/
+.footer{
+   padding-block: 3rem 2rem;
+
+   &__container{
+      position: relative;
+      row-gap: 4rem;
+   }
+   &__logo{
+      display: inline-block;
+      color: var(--first-color);
+      font-size: var(--h2-font-size);
+      font-family: var(--second-font);
+      margin-bottom: .5rem;
+      transition: color .4s;
+
+      &:hover{
+         color: var(--first-color-alt);
+      }
+   }
+   &__content{
+      grid-template-columns: repeat(2, max-content);
+      gap: 4rem 2rem;
+   }
+   &__title{
+      font-size: var(--h3-font-size);
+      margin-bottom: 1.25rem;
+   }
+   &__list{
+      display: grid;
+      row-gap: .75rem;
+   }
+   &__info{
+      font-style: normal;
+   }
+   &__social{
+      display: flex;
+      column-gap: 1rem;
+
+      & a{
+         color: var(--text-color);
+         font-size: 1.5rem;
+         transition: color .4s;
+
+         &:hover{
+            color: var(--first-color);
+         }
+      }
+   }
+   &__img-1,
+   &__img-2{
+      position: absolute;
+   }
+   &__img-1{
+      width: 60px;
+      top: 2.5rem;
+      right: 1.5rem;
+   }
+   &__img-2{
+      width: 70px;
+      top: 17rem;
+      left: 9rem;
+   }
+   &__copy{
+      display: block;
+      margin-top: 6rem;
+      text-align: center;
+      font-size: var(--small-font-size);
+   }
+}
