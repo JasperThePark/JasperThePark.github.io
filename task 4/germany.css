@@ -1,0 +1,110 @@
+
+body{
+    background: rgb(255, 195, 44);
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    margin: 0;
+}
+
+#hdr{
+    min-height: 220px;
+    padding:  3em 1.5em 0 1.5em;
+}
+video{
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dest:hover {
+    transform: scale(1.1); /* Adjust the scale factor based on your preference */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Optional: Add a box shadow for emphasis */
+}
+
+h2, h3, p{
+    margin: 0;
+}
+
+img{
+    width: 100%;
+}
+
+.dest{
+    width: 40%;
+    display: inline-block;
+}
+
+.btn{
+    text-decoration: none;
+    color: white;
+    font-size: 20px;
+    padding: 1em 2em;
+    display: inline-block;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    background-color: rgb(255, 187, 0);
+}
+
+.btn:hover{
+    background-color: rgb(255, 171, 36);
+    border: 1px solid rgb(255, 189, 20);
+}
+
+.hdr-bg {
+    background-image: url("../images/BANNER.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100%;
+    min-height: 260px;
+    position: absolute;
+    z-index: -1;
+    opacity: 0.3;
+    margin: 0;
+    
+}
+
+h2, h3{
+    padding-top: 1em;
+    padding-bottom: 0.5em;
+}
+
+.contact{
+    background: rgb(0, 0, 0);
+    min-height: 100px;
+}
+
+.prices{
+    background: rgb(250, 0, 0);
+    
+    min-height: 100px;
+}
+
+footer{
+    background: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+    min-height: 50px;
+    line-height: 50px;
+}
+
+section{
+    padding-bottom: 1.5em;
+}
+.table {
+    margin: 0 auto; 
+    border-spacing: 10px; 
+}
+
+.table th, .table td {
+    padding: 10px; 
+    font-size: 20px;
+}
+
+#moreinfo{
+    padding-top: 30px;
+}
+video:hover {
+    transform: scale(1.1); 
+    box-shadow: 0 0 20px rgb(255, 153, 0); 
+}
+#exp{
+    padding-bottom: 30px;
+}
