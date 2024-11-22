@@ -1,0 +1,47 @@
+body{
+    margin-left: 15%;
+    margin-right: 20%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+h1{
+    font-size: 100px;
+    font-weight: normal;
+    font-family: sans-serif;
+    margin-bottom: 0px;
+}
+p{
+    font-size: 25px;
+    margin-top: 20px;
+    font-family: sans-serif;
+    margin-bottom: 0px;
+}
+.read-more-btn{
+    background-color: white;
+    border:none;
+    color: black;
+    border-radius: 5px;
+    font-size: 20px;
+    margin-top: 0px;
+    transition: 0.5s ease-in-out;
+}
+.read-more-btn:hover{
+    background-color: black;
+    color: white;
+    font-size: 25px;
+    margin-top: 0px;
+    transition: 0.5s ease-in-out;
+}
+
+.text {
+    font-size: 24px;
+  }
+  .moreText {
+    display: none;
+  }
+  .text.show-more .moreText {
+    display: inline;
+  }
+  .text.show-more .dots {
+    display: none;
+  }

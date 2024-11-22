@@ -1,0 +1,28 @@
+#title{
+    font-size: 70px;
+    text-align: left;
+    margin-left: 15%;
+}
+li{
+    text-align: left;
+    margin-left: 15%;
+    font-size: 28px;
+    font-family: sans-serif;
+    margin-right: 15%;
+}
+h2{
+    margin-left: 15%;
+    font-size: 25px;
+}
+a{
+    color: blue;
+    text-decoration: none;
+    transition: 500ms ease-out;
+    margin-left: 15%;
+    font-size: 30px;
+}
+a:hover{
+    color: blue;
+    font-size: 40px;
+    transition: 500ms ease-out;
+}

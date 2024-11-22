@@ -1,0 +1,32 @@
+#title{
+    font-size: 70px;
+    text-align: left;
+    margin-left: 15%;
+}
+a{
+    color: blue;
+    font-size: 26px;
+    font-family: sans-serif;
+    text-decoration: none;
+    background-color: transparent;
+    border: 2px blue solid;
+    border-radius: 10px;
+    padding: 10px 20px;
+    text-align: center;
+    margin-left: 10%;
+    transition: 500ms ease-in-out;
+}
+a:hover{
+    transition: 500ms ease-in-out;
+    background-color: rgb(114, 185, 255);
+    border: 2px rgb(68, 162, 255) solid;
+    color: white;
+    font-size: 30px;
+    
+}
+.grid{
+    display: grid;
+    grid-template-columns: 350px;
+    gap: 20px;
+    margin-left: 15%;
+}
