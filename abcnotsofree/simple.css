@@ -109,3 +109,36 @@ footer {
     bottom: 0;
     width: 100%;
 }
+#detail {
+    color: #8edfff;
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* Hidden box */
+#detail::after {
+    content: "Japan's internal conflict to decide if they should trade with foreign countries";
+    position: absolute;
+    top: 50%;
+    left: auto;
+    right: -230px; /* Default to the left if there's no space on the right */
+    transform: translateY(-50%);
+    width: 200px;
+    padding: 10px;
+    background-color:#000000;
+    color:#ffffff;
+    text-align: center;
+    border-radius: 5px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    white-space: normal; /* Allow text wrapping */
+}
+
+/* Show box on hover */
+#detail:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
