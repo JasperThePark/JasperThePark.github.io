@@ -58,7 +58,7 @@ main {
 }
 @media (min-width: 1023px) {
     main {
-        background: url(/img/background5.png);
+        background: url(./img/background5.png);
         }
 }
 
