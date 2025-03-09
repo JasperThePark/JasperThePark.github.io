@@ -56,6 +56,11 @@ main {
     background: url(img/background3.png);
     text-align: center;
 }
+@media (max-width: 1023px) {
+    main {
+      background-color: rgb(255, 255, 255); /* Dark grey */
+    }
+  }
 
 section {
     margin-top: 50px;
@@ -160,3 +165,8 @@ footer {
 .introduction img{
     float: right;
 }
+@media (max-width: 1023px) {
+    main {
+      background-color: rgb(255, 255, 255); /* Dark grey */
+    }
+  }
