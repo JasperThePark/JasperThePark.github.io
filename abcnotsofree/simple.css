@@ -59,8 +59,21 @@ main {
 @media (min-width: 1023px) {
     main {
         background: url(./img/background5.png);
-        }
+    }
+    .introduction h1{
+        text-align: center;
+        font-size: 30px;
+        margin-top: 5%;
+    }
+    .introduction p{
+        text-align: center;
+        margin-top: 3%;
+        font-size: 20px;
+        margin-right: 5%;
+        margin-left: 5%;
+    }
 }
+
 
 section {
     margin-top: 50px;
@@ -72,7 +85,7 @@ section {
     padding: 110px 10% 90px;
 }
 p{
-    font-size: 20px;
+    font-size: 15px;
     margin-right: 20%;
 }
 
@@ -164,4 +177,7 @@ footer {
 }
 .introduction img{
     float: right;
+}
+section p{
+    font-size: 20px;
 }
