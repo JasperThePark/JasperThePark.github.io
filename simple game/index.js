@@ -354,6 +354,7 @@ function animate(){
         
 
         //asteroids trash can
+        //____
     if(asteroid.position.x + asteroid.radius < 0 || asteroid.position.x - asteroid.radius > canvas.width || asteroid.position.y - asteroid.radius > canvas.height || asteroid.position.y + asteroid.radius < 0){
         asteroids.splice(i, 1)
     }
