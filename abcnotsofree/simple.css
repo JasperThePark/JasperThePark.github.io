@@ -53,14 +53,14 @@ nav ul li {
 /* Main Content */
 main {
 
-    background: url(img/background3.png);
+    background: #232323;
     text-align: center;
 }
-@media (max-width: 1023px) {
+@media (min-width: 1023px) {
     main {
-      background-color: rgb(255, 255, 255); /* Dark grey */
-    }
-  }
+        background: url(/img/background5.png);
+        }
+}
 
 section {
     margin-top: 50px;
@@ -165,8 +165,3 @@ footer {
 .introduction img{
     float: right;
 }
-@media (max-width: 1023px) {
-    main {
-      background-color: rgb(255, 255, 255); /* Dark grey */
-    }
-  }
