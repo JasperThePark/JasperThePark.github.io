@@ -49,7 +49,21 @@ nav ul li {
     display: inline;
     margin: 0 15px;
 }
-
+img{
+    width:27%;
+    height: 36%;
+    float: right;
+    margin-left: 3%;
+    margin-right: 3%;
+}
+#right{
+    float:left;
+    margin-left: 3%;
+    margin-right: 3%;
+    width:27%;
+    height: 36%;
+    margin-top: 3%;
+}
 /* Main Content */
 main {
 
@@ -58,7 +72,8 @@ main {
 }
 @media (min-width: 1023px) {
     main {
-        background: url(./img/background5.png);
+        background: url(./img/background7.png);
+        background-size: cover;
     }
     .introduction h1{
         text-align: center;
