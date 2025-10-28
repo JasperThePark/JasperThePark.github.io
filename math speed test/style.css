@@ -1,0 +1,73 @@
+/* Reset browser default spacing */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+}
+
+/* Title styling */
+#title {
+    margin-top: 30px;
+    font-size: 2.5rem;
+    color: #333;
+}
+
+/* Container for all mode buttons */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 25px;
+}
+
+/* Buttons */
+.mode-button {
+    padding: 15px 25px;
+    font-size: 1.1rem;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+/* Hover effect */
+.mode-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Quiz area container */
+#quizArea {
+    margin-top: 40px;
+    font-size: 1.3rem;
+}
+
+/* Countdown + Question styling */
+#countdown {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#question {
+    margin-bottom: 15px;
+    white-space: pre;
+}
+
+/* Answer box styling */
+#answerBox {
+    padding: 10px;
+    font-size: 1rem;
+    width: 180px;
+    border-radius: 6px;
+    border: 2px solid #555;
+}
+#cancel{
+    background-color: red;
+    font-family: sans-serif;
+    color: white;
+}
