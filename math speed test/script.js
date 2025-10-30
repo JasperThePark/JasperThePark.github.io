@@ -162,6 +162,7 @@ function generateAlgebraQuestion() {
     cancelQuiz.hidden = true;
     label.hidden = true;
     question.textContent = '';
+    let questionToAnswer = ''
     countdownDisplay.textContent = '';
 
     const newAnswerBox = answerBox.cloneNode(true);
@@ -297,16 +298,21 @@ function generateAlgebraQuestion() {
 }
 
 function generateProbabilityQuestion() {
-    const ops = ['*', '+', '-', '/'];
     const question = document.getElementById("question")
     const answerBox = document.getElementById('answerBox')
     const label = document.getElementById('label')
     const cancelQuiz = document.getElementById('cancel')
     const countdownDisplay = document.getElementById('countdown')
     const totalQuestions = 10
+    let mistakes = []
+    const mistakesList = document.getElementById('mistakesList')
+    mistakesList.innerHTML = ''
+    mistakesList.hidden = true
+    let questionToAnswer = ''
     let score = 0;
     let currentQuestion = 0;
     let n,k,split;
+    let ans = []
     answerBox.hidden = true;
     cancelQuiz.hidden = true;
     label.hidden = true;
@@ -341,6 +347,7 @@ function generateProbabilityQuestion() {
         const freshBox = newAnswerBox.cloneNode(true);
         newAnswerBox.parentNode.replaceChild(freshBox, newAnswerBox);
         quizArea.hidden = true;
+        mistakesList.innerHTML = ''
     };
 
     function startQuiz1(){
@@ -357,6 +364,12 @@ function generateProbabilityQuestion() {
             question.textContent = 'Quiz Over! Score: ' + score*10;
             newAnswerBox.hidden = true
             label.hidden = true
+            mistakesList.hidden = false
+            mistakes.forEach(([question,user,correct])=>{
+                const li = document.createElement('li')
+                li.innerHTML = `${question}  <span style='color:red'>→ You: ${user},  </span> <span style='color:green'>Correct: ${correct}</span>`
+                mistakesList.appendChild(li)
+            })
             return;
         }
 
@@ -372,7 +385,8 @@ function generateProbabilityQuestion() {
                 `How many ${k}-digit codes can be made using digits 1-${n} with no repeats?`,
                 `We have ${n} books and ${k} spots on a shelf. How many ordered selections?`
             ];
-            question.textContent = templates[Math.floor(Math.random() * templates.length)];
+            questionToAnswer = templates[Math.floor(Math.random() * templates.length)];
+            question.textContent = questionToAnswer
 
         } else if(split == 1){
             // combinations
@@ -383,15 +397,16 @@ function generateProbabilityQuestion() {
                 `A bag has ${n} different marbles. How many ways to pick ${k}?`,
                 `There are ${n} clubs and you can join ${k}. How many sets can you choose?`
             ];
-            question.textContent = templates[Math.floor(Math.random() * templates.length)];
+            questionToAnswer = templates[Math.floor(Math.random() * templates.length)];
+            question.textContent = questionToAnswer
 
         } else {
             // probability from counting
             let outcomes = Math.floor(Math.random() * 6) + 6;
             let favorable = Math.floor(Math.random() * outcomes);
-            question.textContent =
-                `If a random event has ${favorable} favorable outcomes out of ${outcomes} equally likely outcomes,\n` +
+            questionToAnswer = `If a random event has ${favorable} favorable outcomes out of ${outcomes} equally likely outcomes,\n` +
                 `what is the probability? (Answer as a simplified fraction or decimal)`;
+            question.textContent = questionToAnswer
             n = outcomes;
             k = favorable;
         }
@@ -413,16 +428,28 @@ function generateProbabilityQuestion() {
         return ans;
     }
 
-
+    function gcd(a, b) {
+      if (b === 0) {
+        return a;
+      } else {
+        return gcd(b, a % b);
+      }
+    }
     function checkAnswer(){
         let correct;
 
         if(split == 0){
             correct = factorial(n) / factorial(n - k); // permutations
+            ans[0] = factorial(n) / gcd(factorial(n),factorial(n-k))
+            ans[1] = factorial(n-k) / gcd(factorial(n),factorial(n-k))
         } else if(split == 1){
             correct = factorial(n) / (factorial(n-k)*factorial(k))
+            ans[0] = factorial(n) / gcd(factorial(n),factorial(n-k)*factorial(k))
+            ans[1] = (factorial(n-k)*factorial(k)) / gcd(factorial(n),factorial(n-k)*factorial(k))
         } else {
             correct = k / n; // probability
+            ans[0] = k / gcd(k,n)
+            ans[1] =  n / gcd(k,n)
         }
         let user;
         if(newAnswerBox.value.includes('/')){
@@ -431,10 +458,11 @@ function generateProbabilityQuestion() {
         }
         user = Number(newAnswerBox.value);
         
-        if (Math.abs(user - correct) < 0.0001){
+        if (Math.abs(user - correct) < 0.005){
             score++;
             console.log("correct");
         } else {
+            mistakes.push([questionToAnswer,user,`${correct} or ${ans[0]} / ${ans[1]}`])
             console.log("incorrect");
         }
 
