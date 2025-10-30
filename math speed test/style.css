@@ -1,3 +1,4 @@
+/* note that 80% of css was made with Ai so i should design some more in the future*/
 /* Reset browser default spacing */
 body {
     margin: 0;
@@ -70,4 +71,52 @@ body {
     background-color: red;
     font-family: sans-serif;
     color: white;
+}
+#mistakesList{
+    list-style-type: none;
+    white-space: pre;
+}
+/* Make the whole quiz area responsive */
+#quizArea {
+    max-width: 95vw;      /* limits width to viewport */
+    margin: 0 auto;       /* center horizontally */
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-x: auto;     /* horizontal scroll for long questions */
+}
+
+/* Make buttons scale nicely on small screens */
+.mode-button {
+            /* grow/shrink, almost half-width each */
+    margin: 5px;
+    min-width: 120px;     /* so they don’t shrink too small */
+    box-sizing: border-box;
+}
+
+/* Stack buttons vertically on really small screens */
+@media (max-width: 430px) {
+    .mode-button {
+        flex: 1 1 100%;
+    }
+    #mistakesList{
+        font-size: 80%;
+    }
+}
+
+/* Make question text wrap instead of overflowing */
+#question {
+    word-wrap: break-word;
+    font-size: 1rem;      /* readable on phones */
+}
+
+
+/* Mistakes list scroll if too long */
+#mistakesList {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Countdown & labels scale */
+#countdown, #label {
+    font-size: 1.1rem;
 }
