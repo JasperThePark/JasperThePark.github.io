@@ -120,3 +120,22 @@ body {
 #countdown, #label {
     font-size: 1.1rem;
 }
+#progressBar {
+    width: 80%;
+    height: 15px;
+    background-color: #ddd;
+    margin: 15px auto;
+    border-radius: 10px;
+    overflow: hidden;
+}
+#progressFill {
+    width: 0%;
+    height: 100%;
+    background-color: #28a745;
+    transition: width 0.3s ease;
+}
+#progressText {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 10px;
+}

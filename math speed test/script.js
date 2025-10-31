@@ -1,5 +1,9 @@
 const buttons = document.querySelectorAll(".mode-button");
 const quizArea = document.getElementById("quizArea");
+const countdownSound = new Audio('sounds/clock tick sound.mp3')
+const startSound = new Audio('sounds/start1.mp3')
+const questionSound = new Audio('sounds/keyboard-click-327728.mp3')
+const completeSound = new Audio('sounds/complete.mp3')
 
 buttons.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -34,6 +38,7 @@ function generateArithmeticQuestion() {
     let op,nums1,nums2,num3;
     let mistakes = []
     const mistakesList = document.getElementById('mistakesList')
+    document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
     mistakesList.innerHTML = ''
     answerBox.hidden = true;
     cancelQuiz.hidden = true;
@@ -48,10 +53,14 @@ function generateArithmeticQuestion() {
     
     let countdownValue = 2;
     countdownDisplay.textContent = 3;
-    
+    document.getElementById('progressText').textContent = 'Loading.'
+    countdownSound.currentTime = 0
+    countdownSound.play()
     const countdownInterval = setInterval(()=>{
         if(countdownValue == 0){
             countdownDisplay.textContent = 'Go!';
+            document.getElementById('progressText').textContent = 'Ready'
+            startSound.play()
         }
         else if(countdownValue==-1){
             countdownDisplay.textContent = '';
@@ -59,6 +68,9 @@ function generateArithmeticQuestion() {
             startQuiz1()
         }
         else{
+            countdownSound.currentTime = 0
+            countdownSound.play()
+            document.getElementById('progressText').textContent = 'Loading' + '.'.repeat(3 - countdownValue + 1)
             countdownDisplay.textContent = countdownValue
         }
         countdownValue-=1
@@ -82,6 +94,13 @@ function generateArithmeticQuestion() {
     };
 
     function nextQuestion(){
+        document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
+        if(currentQuestion==10){
+            document.getElementById('progressText').textContent = `Complete!`;
+            completeSound.play()
+        }else{
+            document.getElementById('progressText').textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+        }
         if(currentQuestion>=totalQuestions){
             question.textContent = 'Quiz Over! Score: '+score*10;
             newAnswerBox.hidden = true;
@@ -135,6 +154,8 @@ function generateArithmeticQuestion() {
             console.log('incorrect')
         }
         newAnswerBox.value = "";
+        questionSound.currentTime = 0
+        questionSound.play()
         nextQuestion();
     }
 
@@ -164,7 +185,7 @@ function generateAlgebraQuestion() {
     question.textContent = '';
     let questionToAnswer = ''
     countdownDisplay.textContent = '';
-
+    document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
     const newAnswerBox = answerBox.cloneNode(true);
     answerBox.parentNode.replaceChild(newAnswerBox, answerBox);
     console.log('Quiz Starts!')
@@ -172,10 +193,14 @@ function generateAlgebraQuestion() {
     
     let countdownValue = 2;
     countdownDisplay.textContent = 3;
-    
+    document.getElementById('progressText').textContent = 'Loading.'
+    countdownSound.currentTime = 0
+    countdownSound.play()
     const countdownInterval = setInterval(()=>{
         if(countdownValue == 0){
             countdownDisplay.textContent = 'Go!';
+            document.getElementById('progressText').textContent = 'Ready'
+            startSound.play()
         }
         else if(countdownValue==-1){
             countdownDisplay.textContent = '';
@@ -184,6 +209,9 @@ function generateAlgebraQuestion() {
         }
         else{
             countdownDisplay.textContent = countdownValue
+            countdownSound.currentTime = 0
+            countdownSound.play()
+            document.getElementById('progressText').textContent = 'Loading' + '.'.repeat(3 - countdownValue + 1)
         }
         countdownValue-=1
     },1000);
@@ -206,6 +234,13 @@ function generateAlgebraQuestion() {
     };
 
     function nextQuestion(){
+        document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
+        if(currentQuestion==10){
+            document.getElementById('progressText').textContent = `Complete!`;
+            completeSound.play()
+        }else{
+            document.getElementById('progressText').textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+        }
         if(currentQuestion>=totalQuestions){
             question.textContent = 'Quiz Over! Score: '+score*10;
             newAnswerBox.hidden = true
@@ -294,6 +329,8 @@ function generateAlgebraQuestion() {
         }
         newAnswerBox.value = "";
         nextQuestion();
+        questionSound.currentTime = 0
+        questionSound.play()
     }
 }
 
@@ -313,6 +350,7 @@ function generateProbabilityQuestion() {
     let currentQuestion = 0;
     let n,k,split;
     let ans = []
+    document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
     answerBox.hidden = true;
     cancelQuiz.hidden = true;
     label.hidden = true;
@@ -326,10 +364,14 @@ function generateProbabilityQuestion() {
     
     let countdownValue = 2;
     countdownDisplay.textContent = 3;
-    
+    document.getElementById('progressText').textContent = 'Loading.'
+    countdownSound.currentTime = 0
+    countdownSound.play()
     const countdownInterval = setInterval(()=>{
         if(countdownValue == 0){
             countdownDisplay.textContent = 'Go!';
+            document.getElementById('progressText').textContent = 'Ready'
+            startSound.play()
         }
         else if(countdownValue==-1){
             countdownDisplay.textContent = '';
@@ -337,7 +379,10 @@ function generateProbabilityQuestion() {
             startQuiz1()
         }
         else{
+            countdownSound.currentTime = 0
+            countdownSound.play()
             countdownDisplay.textContent = countdownValue
+            document.getElementById('progressText').textContent = 'Loading' + '.'.repeat(3 - countdownValue + 1)
         }
         countdownValue-=1
     },1000);
@@ -360,6 +405,13 @@ function generateProbabilityQuestion() {
     };
 
     function nextQuestion(){
+        document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
+        if(currentQuestion==10){
+            document.getElementById('progressText').textContent = `Complete!`;
+            completeSound.play()
+        }else{
+            document.getElementById('progressText').textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+        }
         if(currentQuestion >= totalQuestions){
             question.textContent = 'Quiz Over! Score: ' + score*10;
             newAnswerBox.hidden = true
@@ -468,5 +520,7 @@ function generateProbabilityQuestion() {
 
         newAnswerBox.value = "";
         nextQuestion();
+        questionSound.currentTime = 0
+        questionSound.play()
     }
 }
