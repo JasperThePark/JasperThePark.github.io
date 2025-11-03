@@ -7,6 +7,7 @@ const completeSound = new Audio('sounds/complete.mp3')
 const stopwatch = document.getElementById('safeTimerDisplay')
 const leaderboardContainer = document.getElementById('leaderboardContainer')
 const leaderBoardBack = document.getElementById('backButton')
+const loading = document.getElementById('loadingMessage')
 let currentMode  = ''
 startSound.volume = 0.7
 let seconds = 0
@@ -22,6 +23,7 @@ buttons.forEach(btn => {
 function startQuiz(mode) {
     quizArea.hidden = false;
     seconds = 0
+    loading.hidden = true
     stopwatch.innerHTML = 0
     clearInterval(timer)
     clearInterval(countdownInterval)
@@ -605,6 +607,8 @@ function generateProbabilityQuestion() {
 const renderUrl = "https://mathspeedtestappapi-yxqo.onrender.com"; // your Flask app URL
 
 function fetchLeaderboard(mode) {
+    loading.hidden = false;
+
     fetch(`${renderUrl}/leaderboard/${mode}`)
         .then(res => res.json())
         .then(data => {
@@ -621,6 +625,7 @@ function fetchLeaderboard(mode) {
                 });
             }
             container.hidden = false;
+            loading.hidden = true
         })
         .catch(err => console.error(err));
 }
