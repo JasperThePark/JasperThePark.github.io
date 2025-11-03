@@ -15,11 +15,12 @@
         <button class="mode-button" data-mode="algebra">Algebra</button>
         <button class="mode-button" data-mode="probability">Probability</button>
     </div>
-
     <div id="quizArea" hidden>
+        
         <div id="progressBar"><div id="progressFill"></div></div>
         <p id="progressText"></p>
         <div id="countdown"></div>
+        <div id="safeTimerDisplay"></div>
         <div id="question"></div>
         <label for="label" id = 'label'hidden>Answer:</label>
         <input type="text" id="answerBox">
@@ -27,6 +28,12 @@
         <ul id="mistakesList" hidden>
 
         </ul>
+    </div>
+
+    <div id="leaderboardContainer" hidden>
+        <h2>🏆 Leaderboard</h2>
+        <ol id="leaderboardList"></ol>
+        <button id="backButton">Back to Menu</button>
     </div>
 
     <script src="script.js"></script>

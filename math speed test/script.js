@@ -1,20 +1,32 @@
 const buttons = document.querySelectorAll(".mode-button");
 const quizArea = document.getElementById("quizArea");
-const countdownSound = new Audio('sounds/clock tick sound.mp3')
+const countdownSound = new Audio('sounds/clock tick sound2.mp3')
 const startSound = new Audio('sounds/start1.mp3')
 const questionSound = new Audio('sounds/keyboard-click-327728.mp3')
 const completeSound = new Audio('sounds/complete.mp3')
-
+const stopwatch = document.getElementById('safeTimerDisplay')
+const leaderboardContainer = document.getElementById('leaderboardContainer')
+const leaderBoardBack = document.getElementById('backButton')
+let currentMode  = ''
+startSound.volume = 0.7
+let seconds = 0
+let timer
+let countdownInterval
 buttons.forEach(btn => {
     btn.addEventListener("click", () => {
-        const mode = btn.dataset.mode;
-        startQuiz(mode);
+        currentMode = btn.dataset.mode;
+        startQuiz(currentMode);
     });
 });
 
 function startQuiz(mode) {
     quizArea.hidden = false;
-
+    seconds = 0
+    stopwatch.innerHTML = 0
+    clearInterval(timer)
+    clearInterval(countdownInterval)
+    leaderboardContainer.hidden = true
+    
     if (mode === "arithmetic") {
         generateArithmeticQuestion();
     } else if (mode === "algebra") {
@@ -43,6 +55,7 @@ function generateArithmeticQuestion() {
     answerBox.hidden = true;
     cancelQuiz.hidden = true;
     label.hidden = true;
+    stopwatch.hidden= true
     question.textContent = '';
     countdownDisplay.textContent = '';
 
@@ -56,7 +69,7 @@ function generateArithmeticQuestion() {
     document.getElementById('progressText').textContent = 'Loading.'
     countdownSound.currentTime = 0
     countdownSound.play()
-    const countdownInterval = setInterval(()=>{
+    countdownInterval = setInterval(()=>{
         if(countdownValue == 0){
             countdownDisplay.textContent = 'Go!';
             document.getElementById('progressText').textContent = 'Ready'
@@ -81,15 +94,26 @@ function generateArithmeticQuestion() {
         const freshBox = newAnswerBox.cloneNode(true);
         newAnswerBox.parentNode.replaceChild(freshBox, newAnswerBox);
         quizArea.hidden = true;
+        document.getElementById('leaderboardContainer').hidden = true
+        seconds = 0
+        stopwatch.innerHTML=0
+        clearInterval(timer)
         mistakesList.innerHTML = ''
     };
-
+    leaderBoardBack.onclick = () =>{
+        document.getElementById('leaderboardContainer').hidden = true
+    }
     function startQuiz1(){
+        stopwatch.hidden = false
         newAnswerBox.value = ''
         cancelQuiz.hidden = false
         newAnswerBox.hidden= false
         label.hidden = false
         question.hidden = false
+        timer = setInterval(function(){
+            stopwatch.innerHTML=seconds/100;
+            seconds+=1;
+        }, 10);
         nextQuestion()    
     };
 
@@ -103,10 +127,17 @@ function generateArithmeticQuestion() {
         }
         if(currentQuestion>=totalQuestions){
             question.textContent = 'Quiz Over! Score: '+score*10;
+            if (score === 10) { // assuming each question is 10 points
+                const username = prompt("Perfect score! Enter your name:");
+                submitScore(username, currentMode, seconds / 100); 
+            } else {
+                fetchLeaderboard(currentMode); // still show leaderboard even if score < 100
+            }
             newAnswerBox.hidden = true;
             label.hidden = true;
             mistakesList.hidden = false
             mistakesList.innerHTML = '';
+            clearInterval(timer)
             mistakes.forEach(([question,user,correct])=>{
                 const li = document.createElement('li')
                 li.innerHTML = `${question}  <span style='color:red'>→ You: ${user},  </span> <span style='color:green'>Correct: ${correct}</span>`
@@ -185,6 +216,8 @@ function generateAlgebraQuestion() {
     question.textContent = '';
     let questionToAnswer = ''
     countdownDisplay.textContent = '';
+    stopwatch.hidden = true
+    seconds = 0
     document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
     const newAnswerBox = answerBox.cloneNode(true);
     answerBox.parentNode.replaceChild(newAnswerBox, answerBox);
@@ -196,7 +229,7 @@ function generateAlgebraQuestion() {
     document.getElementById('progressText').textContent = 'Loading.'
     countdownSound.currentTime = 0
     countdownSound.play()
-    const countdownInterval = setInterval(()=>{
+    countdownInterval = setInterval(()=>{
         if(countdownValue == 0){
             countdownDisplay.textContent = 'Go!';
             document.getElementById('progressText').textContent = 'Ready'
@@ -220,16 +253,28 @@ function generateAlgebraQuestion() {
         clearInterval(countdownInterval);
         const freshBox = newAnswerBox.cloneNode(true);
         newAnswerBox.parentNode.replaceChild(freshBox, newAnswerBox);
+        document.getElementById('leaderboardContainer').hidden = true
         quizArea.hidden = true;
+        clearInterval(timer)
+        seconds = 0
+        stopwatch.innerHTML = 0
+        stopwatch.hidden = true
         mistakesList.innerHTML = ''
     };
-
+    leaderBoardBack.onclick = () =>{
+        document.getElementById('leaderboardContainer').hidden = true
+    }
     function startQuiz1(){
         newAnswerBox.value = ''
         cancelQuiz.hidden = false
         newAnswerBox.hidden= false
         label.hidden = false
         question.hidden = false
+        stopwatch.hidden = false
+        timer = setInterval(function(){
+            stopwatch.innerHTML=seconds/100;
+            seconds+=1;
+        }, 10);
         nextQuestion()    
     };
 
@@ -238,11 +283,18 @@ function generateAlgebraQuestion() {
         if(currentQuestion==10){
             document.getElementById('progressText').textContent = `Complete!`;
             completeSound.play()
+            clearInterval(timer)
         }else{
             document.getElementById('progressText').textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
         }
         if(currentQuestion>=totalQuestions){
             question.textContent = 'Quiz Over! Score: '+score*10;
+            if (score === 10) { // assuming each question is 10 points
+                const username = prompt("Perfect score! Enter your name:");
+                submitScore(username, currentMode, seconds / 100); 
+            } else {
+                fetchLeaderboard(currentMode); // still show leaderboard even if score < 100
+            }
             newAnswerBox.hidden = true
             label.hidden = true
             mistakesList.hidden = false
@@ -257,7 +309,6 @@ function generateAlgebraQuestion() {
         split = Math.floor(Math.random()*2)
         if(split == 0){
             //linear algebra
-            
             nums1 = Math.floor(Math.random()*100)
             nums2 = Math.floor(Math.random()*100)
             op = ops[Math.floor(Math.random() * ops.length)];
@@ -356,6 +407,8 @@ function generateProbabilityQuestion() {
     label.hidden = true;
     question.textContent = '';
     countdownDisplay.textContent = '';
+    stopwatch.hidden = true
+    seconds = 0
 
     const newAnswerBox = answerBox.cloneNode(true);
     answerBox.parentNode.replaceChild(newAnswerBox, answerBox);
@@ -367,7 +420,7 @@ function generateProbabilityQuestion() {
     document.getElementById('progressText').textContent = 'Loading.'
     countdownSound.currentTime = 0
     countdownSound.play()
-    const countdownInterval = setInterval(()=>{
+    countdownInterval = setInterval(()=>{
         if(countdownValue == 0){
             countdownDisplay.textContent = 'Go!';
             document.getElementById('progressText').textContent = 'Ready'
@@ -392,15 +445,28 @@ function generateProbabilityQuestion() {
         const freshBox = newAnswerBox.cloneNode(true);
         newAnswerBox.parentNode.replaceChild(freshBox, newAnswerBox);
         quizArea.hidden = true;
+        seconds = 0
+        stopwatch.innerHTML=0
+        clearInterval(timer)
         mistakesList.innerHTML = ''
+        document.getElementById('leaderboardContainer').hidden = true
     };
+    leaderBoardBack.onclick = () =>{
+        document.getElementById('leaderboardContainer').hidden = true
+    }
 
     function startQuiz1(){
         newAnswerBox.value = ''
         cancelQuiz.hidden = false
         newAnswerBox.hidden= false
         label.hidden = false
+        stopwatch.hidden = false
+        clearInterval(timer)
         question.hidden = false
+        timer = setInterval(function(){
+            stopwatch.innerHTML=seconds/100;
+            seconds+=1;
+        }, 10);
         nextQuestion()    
     };
 
@@ -408,12 +474,19 @@ function generateProbabilityQuestion() {
         document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
         if(currentQuestion==10){
             document.getElementById('progressText').textContent = `Complete!`;
+            clearInterval(timer)
             completeSound.play()
         }else{
             document.getElementById('progressText').textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
         }
         if(currentQuestion >= totalQuestions){
             question.textContent = 'Quiz Over! Score: ' + score*10;
+            if (score === 10) { // assuming each question is 10 points
+                const username = prompt("Perfect score! Enter your name:");
+                submitScore(username, currentMode, seconds / 100); 
+            } else {
+                fetchLeaderboard(currentMode); // still show leaderboard even if score < 100
+            }
             newAnswerBox.hidden = true
             label.hidden = true
             mistakesList.hidden = false
@@ -523,4 +596,47 @@ function generateProbabilityQuestion() {
         questionSound.currentTime = 0
         questionSound.play()
     }
+}
+
+
+
+//leaderboard
+
+const renderUrl = "https://mathspeedtestappapi-yxqo.onrender.com"; // your Flask app URL
+
+function fetchLeaderboard(mode) {
+    fetch(`${renderUrl}/leaderboard/${mode}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("leaderboardContainer");
+            const list = document.getElementById("leaderboardList");
+            list.innerHTML = "";
+            if (data.length === 0) {
+                list.innerHTML = "<li>No entries yet</li>";
+            } else {
+                data.forEach((entry, index) => {
+                    const li = document.createElement("li");
+                    li.textContent = `${index + 1}. ${entry.name} - ${entry.time}s`;
+                    list.appendChild(li);
+                });
+            }
+            container.hidden = false;
+        })
+        .catch(err => console.error(err));
+}
+function submitScore(name, mode, time) {
+    fetch(`${renderUrl}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mode, score: 100, time })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            fetchLeaderboard(mode); // refresh leaderboard after submitting
+        } else {
+            console.log("Submit failed:", data.reason);
+        }
+    })
+    .catch(err => console.error(err));
 }
