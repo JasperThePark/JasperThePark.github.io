@@ -308,8 +308,8 @@ function generateAlgebraQuestion() {
             })
             return;
         }
-        split = Math.floor(Math.random()*2)
-        if(split == 0){
+        split = Math.random()
+        if(split >=0.4){
             //linear algebra
             nums1 = Math.floor(Math.random()*100)
             nums2 = Math.floor(Math.random()*100)
@@ -346,7 +346,7 @@ function generateAlgebraQuestion() {
 
     function checkAnswer(){
         let correct,correct1;
-        if(split == 0){
+        if(split >=0.4){
             //linear
             switch (op) {
                 case '+': correct = nums2-nums1; break;
@@ -372,7 +372,7 @@ function generateAlgebraQuestion() {
             score++;
             console.log("correct")
         }else{
-            if(split==0){
+            if(split>=0.4){
                 mistakes.push([questionToAnswer,userAnswer,correct])
             }else{
                 mistakes.push([questionToAnswer,userAnswer,`${correct} or ${correct1}`])
