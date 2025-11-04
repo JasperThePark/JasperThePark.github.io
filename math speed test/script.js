@@ -645,3 +645,5 @@ function submitScore(name, mode, time) {
     })
     .catch(err => console.error(err));
 }
+
+
