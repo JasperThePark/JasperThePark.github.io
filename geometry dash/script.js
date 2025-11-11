@@ -1,5 +1,6 @@
 const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
+let score = 0
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -36,43 +37,46 @@ class Player {
     context.restore();
   }
 
-  update() {
+  update(delta) {
+    this.position.y += this.velocity.y * delta;
     this.draw();
-    this.position.y += this.velocity.y;
   }
 }
 
 // ----- Spike -----
 class Spike {
-  constructor({ position, velocity }) {
+  constructor({ position, velocity,lastPiece}) {
     this.position = position;
     this.velocity = velocity;
+    this.lastPiece = lastPiece
   }
 
   draw() {
     context.beginPath();
-    context.moveTo(this.position.x - 25, this.position.y + 42);
-    context.lineTo(this.position.x + 25, this.position.y + 42);
+    context.moveTo(this.position.x - 25, this.position.y + 32);
+    context.lineTo(this.position.x + 25, this.position.y + 32);
     context.lineTo(this.position.x, this.position.y - 20);
     context.fillStyle = "black";
     context.fill();
     context.closePath();
+
     context.strokeStyle = "white";
     context.stroke();
   }
 
-  update() {
+  update(delta) {
+    this.position.x += this.velocity.x * delta;
     this.draw();
-    this.position.x += this.velocity.x;
   }
 }
 
 // ----- Block -----
 class Block {
-  constructor({ position, height }) {
+  constructor({ position, height,lastPiece }) {
     this.position = position;
     this.size = height || 50;
     this.velocity = { x: -5, y: 0 };
+    this.lastPiece = lastPiece
   }
 
   draw() {
@@ -85,46 +89,88 @@ class Block {
     context.restore();
   }
 
-  update() {
+  update(delta) {
+    this.position.x += this.velocity.x * delta;
     this.draw();
-    this.position.x += this.velocity.x;
   }
 }
 
 // ----- Level pieces -----
 const levelPieces = {
   0: [
-    { type: "spike", offsetX: 0 },
-    { type: "block", offsetX: 150, height: 50 },
+    //leave a 2px gap between them
+    { type: "spike", offsetX: 0, offsetY: 0 },
+    { type: "block", offsetX: 52, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 104, offsetY: 0 },
+    { type: "spike", offsetX: 156, offsetY: 0 },
+    { type: "block", offsetX: 208, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 208, offsetY: 50, height: 50 },
+    { type: "spike", offsetX: 260, offsetY: 0 },
+    { type: "block", offsetX: 312, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 312, offsetY: 50, height: 50 },
+    { type: "block", offsetX: 312, offsetY: 150, height: 50, lastPiece: true },
   ],
   1: [
-    { type: "block", offsetX: 0, height: 50 },
-    { type: "spike", offsetX: 200 },
+    { type: "spike", offsetX: 100, offsetY: 0, lastPiece: true },
   ],
   2: [
-    { type: "block", offsetX: 0, height: 50 },
-    { type: "block", offsetX: 250, height: 50 },
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 52, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 104, offsetY: 0, lastPiece: true },
+  ],
+  3: [
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 52, offsetY: 0 },
+    { type: "spike", offsetX: 104, offsetY: 0 },
+    { type: "spike", offsetX: 156, offsetY: 0, lastPiece: true },
+  ],
+  4: [
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 52, offsetY: 0 },
+    { type: "block", offsetX: 52, offsetY: 110, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 156, offsetY: 0 },
+    { type: "block", offsetX: 156, offsetY: 110, height: 50 },
+    { type: "block", offsetX: 208, offsetY: 0, height: 50,lastPiece: true },
+
   ]
 };
 
 function spawnPiece(pieceName, startX) {
   const piece = levelPieces[pieceName];
   for (const obj of piece) {
-    if (obj.type === "spike") {
+    if (obj.type === "spike" && obj.lastPiece == true) {
       spikes.push(new Spike({
-        position: { x: startX + obj.offsetX, y: ground.position.y - 42 },
+        position: { x: startX + obj.offsetX, y: ground.position.y - 32-obj.offsetY },
         velocity: { x: -5, y: 0 },
+        lastPiece: true
       }));
-    } else if (obj.type === "block") {
+    }else if (obj.type === "spike") {
+      spikes.push(new Spike({
+        position: { x: startX + obj.offsetX, y: ground.position.y - 32-obj.offsetY },
+        velocity: { x: -5, y: 0 },
+        lastPiece: false
+      }));
+    }
+     else if (obj.type === "block" && obj.lastPiece) {
       blocks.push(new Block({
-        position: { x: startX + obj.offsetX, y: ground.position.y - (obj.height || 50)/2 },
-        height: obj.height || 50
+        position: { x: startX + obj.offsetX, y: ground.position.y - (obj.height || 50) / 2-obj.offsetY},
+        height: obj.height || 50,
+        lastPiece: true
+      }));
+    }
+    
+     else if (obj.type === "block") {
+      blocks.push(new Block({
+        position: { x: startX + obj.offsetX, y: ground.position.y - (obj.height || 50) / 2-obj.offsetY},
+        height: obj.height || 50,
+        lastPiece: false
       }));
     }
   }
 }
 
-// ----- Initialize objects -----
+// ----- Initialize -----
 const ground = new Ground({
   position: { x: 0, y: canvas.height * 19 / 24 + 40 },
   height: canvas.height - canvas.height * 19 / 24,
@@ -136,8 +182,8 @@ const player = new Player({
 
 let blocks = [];
 let spikes = [];
-const keys = { space: { pressed: false } };
 let retryButton = null;
+let keys = { space: { pressed: false } };
 let intervalId;
 
 // ----- Collision helpers -----
@@ -156,70 +202,71 @@ function rectTriangleCollision(player, spike) {
   const bottom = player.position.y + player.size / 2;
 
   const corners = [
-    [left, top],
-    [right, top],
-    [left, bottom],
-    [right, bottom]
+    [left, top], [right, top], [left, bottom], [right, bottom]
   ];
 
-  const A = [spike.position.x - 25, spike.position.y + 42];
-  const B = [spike.position.x + 25, spike.position.y + 42];
+  const A = [spike.position.x - 25, spike.position.y + 32];
+  const B = [spike.position.x + 25, spike.position.y + 32];
   const C = [spike.position.x, spike.position.y - 20];
 
   for (const [x, y] of corners) {
     if (pointInTriangle(x, y, ...A, ...B, ...C)) return true;
   }
-
-  if (
-    (A[0] > left && A[0] < right && A[1] > top && A[1] < bottom) ||
-    (B[0] > left && B[0] < right && B[1] > top && B[1] < bottom) ||
-    (C[0] > left && C[0] < right && C[1] > top && C[1] < bottom)
-  ) return true;
-
   return false;
 }
 
 function rectRectCollision(player, block) {
-  const pLeft = player.position.x - player.size/2;
-  const pRight = player.position.x + player.size/2;
-  const pTop = player.position.y - player.size/2;
-  const pBottom = player.position.y + player.size/2;
+  const pL = player.position.x - player.size / 2;
+  const pR = player.position.x + player.size / 2;
+  const pT = player.position.y - player.size / 2;
+  const pB = player.position.y + player.size / 2;
 
-  const bLeft = block.position.x - block.size/2;
-  const bRight = block.position.x + block.size/2;
-  const bTop = block.position.y - block.size/2;
-  const bBottom = block.position.y + block.size/2;
+  const bL = block.position.x - block.size / 2;
+  const bR = block.position.x + block.size / 2;
+  const bT = block.position.y - block.size / 2;
+  const bB = block.position.y + block.size / 2;
 
-  return {
-    top: pBottom > bTop && pTop < bTop && pRight > bLeft && pLeft < bRight,
-    bottom: pTop < bBottom && pBottom > bBottom && pRight > bLeft && pLeft < bRight,
-    left: pRight > bLeft && pLeft < bLeft && pBottom > bTop && pTop < bBottom,
-    right: pLeft < bRight && pRight > bRight && pBottom > bTop && pTop < bBottom,
-  };
+  if (pR > bL && pL < bR && pB > bT && pT < bB) {
+    const overlapX = Math.min(pR - bL, bR - pL);
+    const overlapY = Math.min(pB - bT, bB - pT);
+    if (overlapY < overlapX) {
+      // vertical collision
+      if (player.velocity.y > 0) {
+        player.position.y -= overlapY;
+        player.velocity.y = 0;
+      } else if (player.velocity.y < 0) {
+        player.position.y += overlapY;
+        player.velocity.y = 0;
+      }
+    } else {
+      // horizontal collision
+      if (player.position.x < block.position.x) player.position.x -= overlapX;
+      else player.position.x += overlapX;
+    }
+    return true;
+  }
+  return false;
 }
 
 // ----- Controls -----
-window.addEventListener("keydown", (e) => {
+addEventListener("keydown", e => {
   if (e.code === "Space") keys.space.pressed = true;
 });
-window.addEventListener("keyup", (e) => {
+addEventListener("keyup", e => {
   if (e.code === "Space") keys.space.pressed = false;
 });
 
-// ----- Retry button click -----
-canvas.addEventListener("click", (event) => {
+// ----- Click Retry -----
+canvas.addEventListener("click", e => {
   if (!retryButton) return;
   const rect = canvas.getBoundingClientRect();
-  const mouseX = event.clientX - rect.left;
-  const mouseY = event.clientY - rect.top;
-
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
   const { x, y, width, height } = retryButton;
-  if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-    restartGame();
-  }
+  if (mx >= x && mx <= x + width && my >= y && my <= y + height) restartGame();
 });
 
-// ----- Restart game -----
+// ----- Restart -----
 function restartGame() {
   retryButton = null;
   spikes = [];
@@ -230,82 +277,82 @@ function restartGame() {
 
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    spawnPiece(Math.floor(Math.random()*3), canvas.width + 30);
+    spawnPiece(Math.floor(Math.random() * 5), canvas.width + 30);
   }, 3000);
 
-  animate();
+  lastTime = performance.now();
+  animate(lastTime);
 }
 
-// ----- Spawn first pieces -----
+// ----- Start Spawning -----
 intervalId = setInterval(() => {
-  spawnPiece(Math.floor(Math.random()*3), canvas.width + 30);
+  spawnPiece(Math.floor(Math.random() * 3), canvas.width + 30);
 }, 3000);
 
-// ----- Main game loop -----
-function animate() {
+// ----- Animation -----
+let lastTime = performance.now();
+
+function animate(currentTime) {
+  const delta = Math.min((currentTime - lastTime) / 16.67, 3);
+  lastTime = currentTime;
   const animationId = requestAnimationFrame(animate);
+
   context.fillStyle = "#04006B";
   context.fillRect(0, 0, canvas.width, canvas.height);
   ground.draw();
-  player.update();
+  player.update(delta);
 
-  // Gravity
-  player.velocity.y += 0.8;
+  //score
+  context.font = "bold 25px sans-serif";
+  context.fillStyle = "white";
+  context.fillText(`Score: ${score}`, 25, 25);
 
-  // ----- Check collisions -----
-  let isAirborne = true;
+  player.velocity.y += 0.8 * delta;
+  let onSomething = false;
 
+  // Blocks
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i];
-    block.update();
-
-    const col = rectRectCollision(player, block);
-
-    if (col.top) {
-      player.position.y = block.position.y - player.size/2 - block.size/2;
-      player.velocity.y = 0;
-      isAirborne = false;
-      player.rotation = 0;
-    } else if (col.bottom) {
-      player.position.y = block.position.y + player.size/2 + block.size/2;
-      player.velocity.y = 0;
-    } else if (col.left) {
-      player.position.x = block.position.x - player.size/2 - block.size/2;
-    } else if (col.right) {
-      player.position.x = block.position.x + player.size/2 + block.size/2;
-    }
-
-    if (block.position.x + block.size/2 < 0) blocks.splice(i, 1);
+    block.update(delta);
+    if (rectRectCollision(player, block)) onSomething = true;
+    if (block.position.x + block.size / 2 < 0 && block.lastPiece){
+      blocks.splice(i, 1);
+      score+=1
+      console.log(score)
+    } 
+    else if (block.position.x + block.size / 2 < 0) blocks.splice(i, 1);
   }
 
-  // Ground check
-  const groundY = ground.position.y;
-  if (isAirborne && player.position.y + player.size/2 >= groundY) {
-    player.position.y = groundY - player.size/2;
+  // Ground
+  if (player.position.y + player.size / 2 >= ground.position.y) {
+    player.position.y = ground.position.y - player.size / 2;
     player.velocity.y = 0;
-    isAirborne = false;
-    player.rotation = 0;
+    onSomething = true;
   }
-
-  // Rotate only if airborne
-  if (isAirborne) player.rotation += 0.042;
 
   // Jump
-  if (keys.space.pressed && !isAirborne) player.velocity.y = -14;
+  if (keys.space.pressed && onSomething) player.velocity.y = -14;
 
-  // ----- Spikes -----
+  // Rotation
+  if (!onSomething) player.rotation += 0.042 * delta;
+  else player.rotation = 0;
+
+  // Spikes
   for (let i = spikes.length - 1; i >= 0; i--) {
     const spike = spikes[i];
-    spike.update();
-
+    spike.update(delta);
     if (rectTriangleCollision(player, spike)) {
       cancelAnimationFrame(animationId);
       clearInterval(intervalId);
       gameOverScreen();
       return;
     }
-
-    if (spike.position.x + 40 < 0) spikes.splice(i, 1);
+    if (spike.position.x + 40 < 0 && spike.lastPiece){
+      spikes.splice(i, 1);
+      score+=1
+      console.log(score)
+    }
+    else if (spike.position.x + 40 < 0) spikes.splice(i, 1);
   }
 }
 
@@ -315,23 +362,22 @@ function gameOverScreen() {
   context.fillStyle = "white";
   context.fillText("Game Over", canvas.width / 3, canvas.height / 2 - 100);
 
-  const buttonWidth = 300;
-  const buttonHeight = 100;
-  const buttonX = canvas.width / 2 - buttonWidth / 2;
-  const buttonY = canvas.height / 2;
+  const w = 300, h = 100;
+  const x = canvas.width / 2 - w / 2;
+  const y = canvas.height / 2;
 
   context.fillStyle = "#222";
-  context.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+  context.fillRect(x, y, w, h);
   context.strokeStyle = "white";
   context.lineWidth = 1;
-  context.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+  context.strokeRect(x, y, w, h);
 
   context.font = "bold 50px sans-serif";
   context.fillStyle = "white";
-  context.fillText("Retry", buttonX + 75, buttonY + 65);
+  context.fillText("Retry", x + 75, y + 65);
 
-  retryButton = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight };
+  retryButton = { x, y, width: w, height: h };
 }
 
-// ----- Start game -----
-animate();
+// ----- Start -----
+animate(performance.now());
