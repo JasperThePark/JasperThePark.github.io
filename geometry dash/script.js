@@ -1,6 +1,7 @@
 const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 let score = 0
+let onSomething = false;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -258,12 +259,21 @@ addEventListener("keyup", e => {
 
 // ----- Click Retry -----
 canvas.addEventListener("click", e => {
-  if (!retryButton) return;
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
-  const { x, y, width, height } = retryButton;
-  if (mx >= x && mx <= x + width && my >= y && my <= y + height) restartGame();
+  // Jump if the player is standing on something and retryButton is NOT active
+  if (!retryButton && typeof onSomething !== "undefined" && onSomething) {
+    player.velocity.y = -14;
+  }
+
+  // Retry button logic
+  if (retryButton) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const { x, y, width, height } = retryButton;
+    if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
+      restartGame();
+    }
+  }
 });
 
 // ----- Restart -----
@@ -308,7 +318,7 @@ function animate(currentTime) {
   context.fillText(`Score: ${score}`, 25, 25);
 
   player.velocity.y += 0.8 * delta;
-  let onSomething = false;
+  onSomething = false;
 
   // Blocks
   for (let i = blocks.length - 1; i >= 0; i--) {
