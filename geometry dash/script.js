@@ -284,11 +284,12 @@ function restartGame() {
   player.position = { x: canvas.width / 4, y: ground.position.y - 40 };
   player.velocity = { x: 0, y: 0 };
   player.rotation = 0;
-
+  score = 0
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    spawnPiece(Math.floor(Math.random() * 5), canvas.width + 30);
-  }, 3000);
+    let idx = Math.floor(Math.random() * 5)
+    spawnPiece(Math.floor(idx), canvas.width + 30);
+  }, Math.floor(Math.random()*4)*1000+1500);
 
   lastTime = performance.now();
   animate(lastTime);
@@ -296,8 +297,9 @@ function restartGame() {
 
 // ----- Start Spawning -----
 intervalId = setInterval(() => {
-  spawnPiece(Math.floor(Math.random() * 3), canvas.width + 30);
-}, 3000);
+  let idx = Math.floor(Math.random() * 5)
+  spawnPiece(Math.floor(idx), canvas.width + 30);
+}, Math.floor(Math.random()*4)*1000+1500);
 
 // ----- Animation -----
 let lastTime = performance.now();
