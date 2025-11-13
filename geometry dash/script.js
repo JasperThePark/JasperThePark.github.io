@@ -2,6 +2,8 @@ const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 let score = 0
 let onSomething = false;
+let speedBoost = 1;
+let speedBoostTimer = 0;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -64,9 +66,8 @@ class Spike {
     context.strokeStyle = "white";
     context.stroke();
   }
-
-  update(delta) {
-    this.position.x += this.velocity.x * delta;
+  update(delta, speedBoost = 1) {
+    this.position.x += this.velocity.x * delta * speedBoost;
     this.draw();
   }
 }
@@ -90,8 +91,34 @@ class Block {
     context.restore();
   }
 
-  update(delta) {
-    this.position.x += this.velocity.x * delta;
+  update(delta, speedBoost = 1) {
+    this.position.x += this.velocity.x * delta * speedBoost;
+    this.draw();
+  }
+}
+//circle
+class Circle {
+  constructor({ position },lastPiece) {
+    this.position = position;
+    this.radius = 20;
+    this.velocity = { x: -5, y: 0 };
+    this.lastPiece = lastPiece;
+  }
+
+  draw() {
+    context.beginPath();
+    context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    context.fillStyle = "yellow";
+    context.shadowColor = "yellow";
+    context.shadowBlur = 20;
+    context.fill();
+    context.closePath();
+    context.shadowBlur = 0;
+    context.shadowColor = "transparent";
+  }
+
+  update(delta, speedBoost = 1) {
+    this.position.x += this.velocity.x * delta * speedBoost;
     this.draw();
   }
 }
@@ -134,6 +161,9 @@ const levelPieces = {
     { type: "block", offsetX: 156, offsetY: 110, height: 50 },
     { type: "block", offsetX: 208, offsetY: 0, height: 50,lastPiece: true },
 
+  ],
+  5: [
+    {type: 'circle', offsetX:0,offsetY:20,lastPiece:true},
   ]
 };
 
@@ -168,6 +198,12 @@ function spawnPiece(pieceName, startX) {
         lastPiece: false
       }));
     }
+    else if (obj.type === "circle") {
+      circles.push(new Circle({
+        position: { x: startX + obj.offsetX, y: ground.position.y - obj.offsetY },
+        lastPiece: obj.lastPiece || false
+      }));
+    }
   }
 }
 
@@ -183,6 +219,7 @@ const player = new Player({
 
 let blocks = [];
 let spikes = [];
+let circles = [];
 let retryButton = null;
 let keys = { space: { pressed: false } };
 let intervalId;
@@ -194,6 +231,22 @@ function pointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
   const b = ((x1*(py - y3) + px*(y3 - y1) + x3*(y1 - py))) / area;
   const c = 1 - a - b;
   return a >= 0 && b >= 0 && c >= 0;
+}
+function rectCircleCollision(player, circle) {
+  const playerLeft = player.position.x - player.size / 2;
+  const playerRight = player.position.x + player.size / 2;
+  const playerTop = player.position.y - player.size / 2;
+  const playerBottom = player.position.y + player.size / 2;
+
+  const circleLeft = circle.position.x - circle.radius;
+  const circleRight = circle.position.x + circle.radius;
+  const circleTop = circle.position.y - circle.radius;
+  const circleBottom = circle.position.y + circle.radius;
+
+  return !(playerRight < circleLeft || 
+           playerLeft > circleRight || 
+           playerBottom < circleTop || 
+           playerTop > circleBottom);
 }
 
 function rectTriangleCollision(player, spike) {
@@ -287,9 +340,9 @@ function restartGame() {
   score = 0
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 5)
+    let idx = Math.floor(Math.random() * 6)
     spawnPiece(Math.floor(idx), canvas.width + 30);
-  }, Math.floor(Math.random()*4)*1000+1500);
+  }, 3000);
 
   lastTime = performance.now();
   animate(lastTime);
@@ -297,9 +350,9 @@ function restartGame() {
 
 // ----- Start Spawning -----
 intervalId = setInterval(() => {
-  let idx = Math.floor(Math.random() * 5)
+  let idx = Math.floor(Math.random() * 6)
   spawnPiece(Math.floor(idx), canvas.width + 30);
-}, Math.floor(Math.random()*4)*1000+1500);
+}, 3000);
 
 // ----- Animation -----
 let lastTime = performance.now();
@@ -325,7 +378,7 @@ function animate(currentTime) {
   // Blocks
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i];
-    block.update(delta);
+    block.update(delta,speedBoost);
     if (rectRectCollision(player, block)) onSomething = true;
     if (block.position.x + block.size / 2 < 0 && block.lastPiece){
       blocks.splice(i, 1);
@@ -334,7 +387,24 @@ function animate(currentTime) {
     } 
     else if (block.position.x + block.size / 2 < 0) blocks.splice(i, 1);
   }
+  //circle loop
+  for (let i = circles.length - 1; i >= 0; i--) {
+    const circle = circles[i];
+    circle.update(delta,speedBoost);
 
+    if (rectCircleCollision(player, circle)) {
+      // Jump boost
+      player.velocity.y = -20; // ~1.5x normal jump
+
+      speedBoost = 3; // global multiplier
+      speedBoostTimer = 60; // lasts 1 second at 60fps
+
+      // Remove circle
+      circles.splice(i, 1);
+    }
+
+    if (circle.position.x + circle.radius < 0) circles.splice(i, 1);
+  }
   // Ground
   if (player.position.y + player.size / 2 >= ground.position.y) {
     player.position.y = ground.position.y - player.size / 2;
@@ -352,7 +422,7 @@ function animate(currentTime) {
   // Spikes
   for (let i = spikes.length - 1; i >= 0; i--) {
     const spike = spikes[i];
-    spike.update(delta);
+    spike.update(delta,speedBoost);
     if (rectTriangleCollision(player, spike)) {
       cancelAnimationFrame(animationId);
       clearInterval(intervalId);
@@ -365,6 +435,10 @@ function animate(currentTime) {
       console.log(score)
     }
     else if (spike.position.x + 40 < 0) spikes.splice(i, 1);
+  }
+  if (speedBoostTimer > 0) {
+    speedBoostTimer--;
+    if (speedBoostTimer <= 0) speedBoost = 1;
   }
 }
 
@@ -389,6 +463,7 @@ function gameOverScreen() {
   context.fillText("Retry", x + 75, y + 65);
 
   retryButton = { x, y, width: w, height: h };
+  
 }
 
 // ----- Start -----
