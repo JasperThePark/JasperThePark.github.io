@@ -4,9 +4,17 @@ let score = 0
 let onSomething = false;
 let speedBoost = 1;
 let speedBoostTimer = 0;
-
+let bgcolor = "#04006B";
+let groundcolor = "darkblue";
+let ragespeed = 1
+let rageDuration = 0
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+let OGragespeed = 1
+let OGrageDuration = 0
+let rageActive = false
+
+
 
 // ----- Ground -----
 class Ground {
@@ -15,7 +23,7 @@ class Ground {
     this.height = height;
   }
   draw() {
-    context.fillStyle = "darkblue";
+    context.fillStyle = groundcolor;
     context.fillRect(0, this.position.y, canvas.width, this.height);
   }
 }
@@ -67,7 +75,7 @@ class Spike {
     context.stroke();
   }
   update(delta, speedBoost = 1) {
-    this.position.x += this.velocity.x * delta * speedBoost;
+    this.position.x += this.velocity.x * delta * speedBoost*ragespeed;
     this.draw();
   }
 }
@@ -92,7 +100,7 @@ class Block {
   }
 
   update(delta, speedBoost = 1) {
-    this.position.x += this.velocity.x * delta * speedBoost;
+    this.position.x += this.velocity.x * delta * speedBoost*ragespeed;
     this.draw();
   }
 }
@@ -118,7 +126,7 @@ class Circle {
   }
 
   update(delta, speedBoost = 1) {
-    this.position.x += this.velocity.x * delta * speedBoost;
+    this.position.x += this.velocity.x * delta * speedBoost*ragespeed;
     this.draw();
   }
 }
@@ -164,6 +172,48 @@ const levelPieces = {
   ],
   5: [
     {type: 'circle', offsetX:0,offsetY:20,lastPiece:true},
+  ],
+  6: [
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 52, offsetY: 0 },
+    { type: "spike", offsetX: 102, offsetY: 0 },
+    { type: "block", offsetX: 104, offsetY: 110, height: 50 },
+    { type: "spike", offsetX: 156, offsetY: 0 },
+    { type: "block", offsetX: 208, offsetY: 0, height: 50,lastPiece: true},
+  ],
+  7: [
+    { type: "block", offsetX: 52, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 208, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 260, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 312, offsetY: 0, height: 50, lastPiece: true  },
+    //overhead
+    { type: "block", offsetX: 0, offsetY: 110, height: 50 },
+    { type: "block", offsetX: 52, offsetY: 110, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 110, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 110, height: 50 },
+    { type: "block", offsetX: 208, offsetY: 110, height: 50 },
+    { type: "block", offsetX: 260, offsetY: 110, height: 50 },
+    //spikes
+    { type: "spike", offsetX: 0, offsetY: 160},
+    { type: "spike", offsetX: 52, offsetY: 160},
+    { type: "spike", offsetX: 104, offsetY: 160},
+    { type: "spike", offsetX: 156, offsetY: 160},
+    { type: "spike", offsetX: 208, offsetY: 160},
+    { type: "spike", offsetX: 260, offsetY: 160},
+  ],
+  8: [
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 104, offsetY: 0},
+    { type: "spike", offsetX: 156, offsetY: 0},
+    { type: "block", offsetX: 170, offsetY: 120, height: 50 },
+    { type: "spike", offsetX: 208, offsetY: 0},
+    { type: "spike", offsetX: 260, offsetY: 0},
+    { type: "spike", offsetX: 312, offsetY: 0},
+    {type: 'circle', offsetX:321,offsetY:250},
+    { type: "spike", offsetX: 364, offsetY: 0},
+    { type: "spike", offsetX: 416, offsetY: 0,lastPiece:true},
   ]
 };
 
@@ -268,7 +318,13 @@ function rectTriangleCollision(player, spike) {
   }
   return false;
 }
-
+function updateSpawnInterval() {
+  clearInterval(intervalId);
+  intervalId = setInterval(() => {
+    let idx = Math.floor(Math.random() * 9);
+    spawnPiece(idx, canvas.width + 30);
+  }, 3000 / ragespeed / speedBoost);
+}
 function rectRectCollision(player, block) {
   const pL = player.position.x - player.size / 2;
   const pR = player.position.x + player.size / 2;
@@ -331,18 +387,28 @@ canvas.addEventListener("click", e => {
 
 // ----- Restart -----
 function restartGame() {
+  updateSpawnInterval()
   retryButton = null;
   spikes = [];
+  bgcolor = "#04006B";
+  groundcolor = "darkblue";
   blocks = [];
+  circles = [];
+  rageActive = false
+  ragespeed = 1
+  rageDuration = 0
+  OGrageDuration = 0
+  OGragespeed = 1
   player.position = { x: canvas.width / 4, y: ground.position.y - 40 };
   player.velocity = { x: 0, y: 0 };
   player.rotation = 0;
   score = 0
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 6)
+    let idx = Math.floor(Math.random() * 9)
     spawnPiece(Math.floor(idx), canvas.width + 30);
-  }, 3000);
+    
+  }, 3000/ragespeed/speedBoost);
 
   lastTime = performance.now();
   animate(lastTime);
@@ -350,9 +416,9 @@ function restartGame() {
 
 // ----- Start Spawning -----
 intervalId = setInterval(() => {
-  let idx = Math.floor(Math.random() * 6)
+  let idx = Math.floor(Math.random() * 9)
   spawnPiece(Math.floor(idx), canvas.width + 30);
-}, 3000);
+}, 3000/ragespeed/speedBoost);
 
 // ----- Animation -----
 let lastTime = performance.now();
@@ -362,7 +428,7 @@ function animate(currentTime) {
   lastTime = currentTime;
   const animationId = requestAnimationFrame(animate);
 
-  context.fillStyle = "#04006B";
+  context.fillStyle = bgcolor;
   context.fillRect(0, 0, canvas.width, canvas.height);
   ground.draw();
   player.update(delta);
@@ -375,6 +441,17 @@ function animate(currentTime) {
   player.velocity.y += 0.8 * delta;
   onSomething = false;
 
+  //rage mode
+  if(score>=30 && !rageActive){
+    bgcolor = '#570000ff'
+    groundcolor = 'darkred'
+    ragespeed = 2.5
+    rageDuration = 180
+    OGrageDuration = 180
+    OGragespeed = 2.5
+    rageActive = true
+    updateSpawnInterval()
+  }
   // Blocks
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i];
@@ -383,7 +460,6 @@ function animate(currentTime) {
     if (block.position.x + block.size / 2 < 0 && block.lastPiece){
       blocks.splice(i, 1);
       score+=1
-      console.log(score)
     } 
     else if (block.position.x + block.size / 2 < 0) blocks.splice(i, 1);
   }
@@ -398,9 +474,10 @@ function animate(currentTime) {
 
       speedBoost = 3; // global multiplier
       speedBoostTimer = 60; // lasts 1 second at 60fps
-
+      updateSpawnInterval()
       // Remove circle
       circles.splice(i, 1);
+      
     }
 
     if (circle.position.x + circle.radius < 0) circles.splice(i, 1);
@@ -439,6 +516,17 @@ function animate(currentTime) {
   if (speedBoostTimer > 0) {
     speedBoostTimer--;
     if (speedBoostTimer <= 0) speedBoost = 1;
+    updateSpawnInterval()
+  }
+  if (rageDuration > 0) {
+    rageDuration--;
+    ragespeed -= (OGragespeed-1)/OGrageDuration;
+    if (rageDuration <= 0){
+      ragespeed = 1;
+      OGragespeed = 1
+      OGrageDuration = 0
+      updateSpawnInterval()
+    } 
   }
 }
 
