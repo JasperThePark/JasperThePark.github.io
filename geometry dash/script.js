@@ -590,6 +590,17 @@ canvas.addEventListener('dblclick', (e) => {
     // Prevent the default browser action (which is often zooming)
     e.preventDefault(); 
 });
+addEventListener('touchstart',e=>{
+    // e.preventDefault() is good practice to prevent mobile scrolling/zooming
+    e.preventDefault(); 
+    keys.space.pressed = true;
+})
+
+// Stop the jump when the finger is lifted
+addEventListener('touchend',e=>{
+    e.preventDefault(); 
+    keys.space.pressed = false;
+})
 // ----- Click Retry -----
 canvas.addEventListener("click", e => {
 
