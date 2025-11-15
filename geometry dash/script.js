@@ -602,19 +602,38 @@ addEventListener('touchend',e=>{
     keys.space.pressed = false;
 })
 // ----- Click Retry -----
-canvas.addEventListener("click", e => {
+function handleInput(e) {
+    // Determine coordinates based on event type
+    let mx, my;
+    const rect = canvas.getBoundingClientRect();
 
-  // Retry button logic
-  if (retryButton) {
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const { x, y, width, height } = retryButton;
-    if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
-      restartGame();
-    }
-  }
-});
+    if (e.touches && e.touches.length > 0) {
+        // Touch event (touchend or touchstart)
+        mx = e.changedTouches[0].clientX - rect.left;
+        my = e.changedTouches[0].clientY - rect.top;
+    } else {
+        // Mouse event (click)
+        mx = e.clientX - rect.left;
+        my = e.clientY - rect.top;
+    }
+
+    // Prevent default touch behaviors (like scrolling/zooming)
+    if (e.type !== 'click') {
+        e.preventDefault();
+    }
+
+    // Retry button logic
+    if (retryButton) {
+        const { x, y, width, height } = retryButton;
+        if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
+            restartGame();
+        }
+    }
+}
+
+// Attach the handler to both click (desktop/fallback) and touchend (mobile)
+canvas.addEventListener("click", handleInput);
+canvas.addEventListener("touchend", handleInput);
 
 // ----- Restart -----
 function restartGame() {
