@@ -580,12 +580,18 @@ addEventListener("keyup", e => {
   if (e.code === "Space") keys.space.pressed = false;
 });
 
+addEventListener('mousedown',e=>{
+  keys.space.pressed = true
+})
+addEventListener('mouseup',e=>{
+  keys.space.pressed = false
+})
+canvas.addEventListener('dblclick', (e) => {
+    // Prevent the default browser action (which is often zooming)
+    e.preventDefault(); 
+});
 // ----- Click Retry -----
 canvas.addEventListener("click", e => {
-  // Jump if the player is standing on something and retryButton is NOT active
-  if (!retryButton && typeof onSomething !== "undefined" && onSomething) {
-    player.velocity.y = -14;
-  }
 
   // Retry button logic
   if (retryButton) {
@@ -708,7 +714,7 @@ function animate(currentTime) {
   }
   
   //rage mode
-  if(score>=5 && !rageActive){
+  if(score>=30 && !rageActive){
     bgcolor = '#570000ff'
     groundcolor = 'darkred'
     ragespeed = 2.5
