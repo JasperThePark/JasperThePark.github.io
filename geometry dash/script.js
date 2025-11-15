@@ -7,12 +7,36 @@ let speedBoostTimer = 0;
 let bgcolor = "#04006B";
 let groundcolor = "darkblue";
 let ragespeed = 1
+let playerColor = "#ad11dde3"
+let playerShadowColor = 'transparent'
+let playerStroke = 'white'
 let rageDuration = 0
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 let OGragespeed = 1
 let OGrageDuration = 0
 let rageActive = false
+let ghostActive = false;
+const GHOST_PLAYER_COLOR = "rgba(129, 173, 255, 0.3)";
+let ghostTimer = 0; // Timer in frames (3 seconds * 60 fps = 180)
+const GHOST_DURATION = 210;
+const OG_PLAYER_COLOR = "#ad11dde3"; // Store the original color
+/**
+ * Helper to get the world coordinates of a vertex after rotation
+ * @param {Array<number>} vertex - The [x, y] local coords of the vertex
+ * @param {Object} origin - The {x, y} world coords of the spike's origin
+ * @param {number} angle - The spike's angle in degrees
+ * @returns {Array<number>} - The [x, y] world coords of the rotated vertex
+ */
+function getRotatedVertex(vertex, origin, angle) {
+  const angleRad = angle * Math.PI / 180;
+  const [vx, vy] = vertex; // local vertex coords
+  
+  const rotatedX = vx * Math.cos(angleRad) - vy * Math.sin(angleRad);
+  const rotatedY = vx * Math.sin(angleRad) + vy * Math.cos(angleRad);
+  
+  return [rotatedX + origin.x, rotatedY + origin.y];
+}
 
 
 
@@ -38,15 +62,26 @@ class Player {
   }
 
   draw() {
-    context.save();
-    context.translate(this.position.x, this.position.y);
-    context.rotate(this.rotation);
-    context.fillStyle = "#ad11dde3";
-    context.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-    context.strokeStyle = "white";
-    context.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
-    context.restore();
-  }
+        context.save();
+        context.translate(this.position.x, this.position.y);
+        context.rotate(this.rotation);
+        
+        // --- Shadow properties set directly on context ---
+        context.shadowBlur = 15; // A reasonable blur amount for a glow
+        context.shadowColor = playerShadowColor; 
+        
+        context.fillStyle = playerColor;
+        context.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+        
+        context.strokeStyle = playerStroke;
+        context.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
+        
+        // --- Reset shadow before restoring context ---
+        context.shadowBlur = 0;
+        context.shadowColor = 'transparent';
+        
+        context.restore();
+    }
 
   update(delta) {
     this.position.y += this.velocity.y * delta;
@@ -56,23 +91,31 @@ class Player {
 
 // ----- Spike -----
 class Spike {
-  constructor({ position, velocity,lastPiece}) {
+  constructor({ position, velocity,lastPiece,angle=0}) {
     this.position = position;
     this.velocity = velocity;
     this.lastPiece = lastPiece
+    this.angle = angle
   }
 
   draw() {
+    context.save(); // save current canvas state
+    context.translate(this.position.x, this.position.y); // move origin to spike position
+    context.rotate(this.angle * Math.PI / 180); // convert degrees to radians if needed
+
     context.beginPath();
-    context.moveTo(this.position.x - 25, this.position.y + 32);
-    context.lineTo(this.position.x + 25, this.position.y + 32);
-    context.lineTo(this.position.x, this.position.y - 20);
+    context.moveTo(-25, 32); // relative to translated origin
+    context.lineTo(25, 32);
+    context.lineTo(0, -20);
+    context.closePath();
+
     context.fillStyle = "black";
     context.fill();
-    context.closePath();
 
     context.strokeStyle = "white";
     context.stroke();
+
+    context.restore(); // restore original canvas state
   }
   update(delta, speedBoost = 1) {
     this.position.x += this.velocity.x * delta * speedBoost*ragespeed;
@@ -118,6 +161,32 @@ class Circle {
     context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
     context.fillStyle = "yellow";
     context.shadowColor = "yellow";
+    context.shadowBlur = 20;
+    context.fill();
+    context.closePath();
+    context.shadowBlur = 0;
+    context.shadowColor = "transparent";
+  }
+
+  update(delta, speedBoost = 1) {
+    this.position.x += this.velocity.x * delta * speedBoost*ragespeed;
+    this.draw();
+  }
+}
+
+class CircleB {
+  constructor({ position },lastPiece) {
+    this.position = position;
+    this.radius = 20;
+    this.velocity = { x: -5, y: 0 };
+    this.lastPiece = lastPiece;
+  }
+
+  draw() {
+    context.beginPath();
+    context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    context.fillStyle = "lightblue";
+    context.shadowColor = "lightblue";
     context.shadowBlur = 20;
     context.fill();
     context.closePath();
@@ -182,26 +251,13 @@ const levelPieces = {
     { type: "block", offsetX: 208, offsetY: 0, height: 50,lastPiece: true},
   ],
   7: [
-    { type: "block", offsetX: 52, offsetY: 0, height: 50 },
-    { type: "block", offsetX: 104, offsetY: 0, height: 50 },
-    { type: "block", offsetX: 156, offsetY: 0, height: 50 },
-    { type: "block", offsetX: 208, offsetY: 0, height: 50 },
-    { type: "block", offsetX: 260, offsetY: 0, height: 50 },
-    { type: "block", offsetX: 312, offsetY: 0, height: 50, lastPiece: true  },
-    //overhead
-    { type: "block", offsetX: 0, offsetY: 110, height: 50 },
-    { type: "block", offsetX: 52, offsetY: 110, height: 50 },
-    { type: "block", offsetX: 104, offsetY: 110, height: 50 },
-    { type: "block", offsetX: 156, offsetY: 110, height: 50 },
-    { type: "block", offsetX: 208, offsetY: 110, height: 50 },
-    { type: "block", offsetX: 260, offsetY: 110, height: 50 },
-    //spikes
-    { type: "spike", offsetX: 0, offsetY: 160},
-    { type: "spike", offsetX: 52, offsetY: 160},
-    { type: "spike", offsetX: 104, offsetY: 160},
-    { type: "spike", offsetX: 156, offsetY: 160},
-    { type: "spike", offsetX: 208, offsetY: 160},
-    { type: "spike", offsetX: 260, offsetY: 160},
+    { type: "block", offsetX: 0, offsetY: 230, height: 50 },
+    { type: "spike", offsetX: 0, offsetY: 230, rotation: 180},
+    { type: "spike", offsetX: 0, offsetY: 0 },
+    
+    { type: "block", offsetX: 170, offsetY: 230, height: 50 },
+    { type: "spike", offsetX: 170, offsetY: 230, rotation: 180},
+    { type: "spike", offsetX: 170, offsetY: 0 , lastPiece: true},
   ],
   8: [
     { type: "block", offsetX: 0, offsetY: 0, height: 50 },
@@ -214,34 +270,119 @@ const levelPieces = {
     {type: 'circle', offsetX:321,offsetY:250},
     { type: "spike", offsetX: 364, offsetY: 0},
     { type: "spike", offsetX: 416, offsetY: 0,lastPiece:true},
+  ],
+  9: [
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 52, offsetY: 0 },
+    { type: "spike", offsetX: 104, offsetY: 0 },
+    { type: "spike", offsetX: 156, offsetY: 0},
+    { type: "block", offsetX: 208, offsetY: 0, height: 50 },
+
+    //upperlayer
+    { type: "block", offsetX: 0, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 52, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 208, offsetY: 250, height: 50, lastPiece: true },
+  ],
+
+  10: [
+    { type: "spike", offsetX: 0, offsetY: 0 },
+    { type: "block", offsetX: 52, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 208, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 260, offsetY: 0 },
+
+    //upper topper
+    { type: "block", offsetX: 0, offsetY: 220, height: 50 },
+    { type: "block", offsetX: 52, offsetY: 220, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 220, height: 50 },
+    { type: "spike", offsetX: 104, offsetY: 220, rotation:180 },
+    { type: "block", offsetX: 156, offsetY: 220, height: 50 },
+    { type: "spike", offsetX: 156, offsetY: 220, rotation:180 },
+    { type: "block", offsetX: 208, offsetY: 220, height: 50 },
+    { type: "block", offsetX: 260, offsetY: 220, height: 50 , lastPiece: true},
+  ],
+
+  11: [
+
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    
+    { type: "block", offsetX: 104, offsetY: 200, height: 50 },
+    { type: "spike", offsetX: 104, offsetY: 200, rotation: 180 }, 
+    
+    { type: "spike", offsetX: 156, offsetY: 0 },
+    { type: "block", offsetX: 208, offsetY: 0, lastPiece: true },
+  ],
+  12: [
+    { type: "block", offsetX: 0, offsetY: 250, height: 50 },
+    { type: "spike", offsetX: 0, offsetY: 250, rotation: 180},
+    {type: 'circleb', offsetX: 0,offsetY: 150},
+    { type: "spike", offsetX: 0, offsetY: 50 },
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+
+    { type: "block", offsetX: 52, offsetY: 250, height: 50 },
+    { type: "spike", offsetX: 52, offsetY: 250, rotation: 180},
+    { type: "spike", offsetX: 52, offsetY: 50 },
+    { type: "block", offsetX: 52, offsetY: 0, height: 50 },
+
+    { type: "block", offsetX: 104, offsetY: 250, height: 50 },
+    { type: "spike", offsetX: 104, offsetY: 250, rotation: 180},
+    { type: "spike", offsetX: 104, offsetY: 50 },
+    { type: "block", offsetX: 104, offsetY: 0, height: 50 },
+
+    { type: "block", offsetX: 156, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 200, height: 50 },
+    { type: "spike", offsetX: 156, offsetY: 200, rotation: 180},
+    { type: "spike", offsetX: 156, offsetY: 100 },
+    { type: "block", offsetX: 156, offsetY: 50, height: 50 },
+
+    { type: "block", offsetX: 208, offsetY: 200, height: 50 },
+    { type: "spike", offsetX: 208, offsetY: 200, rotation: 180},
+    { type: "spike", offsetX: 208, offsetY: 100 },
+    { type: "block", offsetX: 208, offsetY: 50, height: 50 },
+    
+    { type: "block", offsetX: 260, offsetY: 150, height: 50 },
+    { type: "block", offsetX: 260, offsetY: 100, height: 50 },
   ]
 };
-
 function spawnPiece(pieceName, startX) {
   const piece = levelPieces[pieceName];
   for (const obj of piece) {
-    if (obj.type === "spike" && obj.lastPiece == true) {
-      spikes.push(new Spike({
-        position: { x: startX + obj.offsetX, y: ground.position.y - 32-obj.offsetY },
-        velocity: { x: -5, y: 0 },
-        lastPiece: true
-      }));
-    }else if (obj.type === "spike") {
-      spikes.push(new Spike({
-        position: { x: startX + obj.offsetX, y: ground.position.y - 32-obj.offsetY },
-        velocity: { x: -5, y: 0 },
-        lastPiece: false
-      }));
+    if (obj.type === "spike") {
+        const angle = obj.rotation || 0;
+        let yPos;
+
+        if (angle === 180) {
+            // Flipped: The new base is at local y = -32.
+            // We want pos.y - 32 = ground.y - offset.
+            // So, pos.y = ground.y + 32 - offset.
+            yPos = ground.position.y + 32 - obj.offsetY;
+        } else {
+            // Normal: The base is at local y = 32.
+            // We want pos.y + 32 = ground.y - offset.
+            // So, pos.y = ground.y - 32 - offset.
+            yPos = ground.position.y - 32 - obj.offsetY;
+        }
+
+        spikes.push(new Spike({
+            position: { x: startX + obj.offsetX, y: yPos },
+            velocity: { x: -5, y: 0 },
+            lastPiece: obj.lastPiece || false, // Simplified boolean check
+            angle: angle
+        }));
     }
-     else if (obj.type === "block" && obj.lastPiece) {
+    // (Your existing "block" and "circle" code remains the same)
+    else if (obj.type === "block" && obj.lastPiece) {
       blocks.push(new Block({
         position: { x: startX + obj.offsetX, y: ground.position.y - (obj.height || 50) / 2-obj.offsetY},
         height: obj.height || 50,
         lastPiece: true
       }));
     }
-    
-     else if (obj.type === "block") {
+    else if (obj.type === "block") {
       blocks.push(new Block({
         position: { x: startX + obj.offsetX, y: ground.position.y - (obj.height || 50) / 2-obj.offsetY},
         height: obj.height || 50,
@@ -254,9 +395,14 @@ function spawnPiece(pieceName, startX) {
         lastPiece: obj.lastPiece || false
       }));
     }
+    else if (obj.type === "circleb") {
+      circlesB.push(new CircleB({
+        position: { x: startX + obj.offsetX, y: ground.position.y - obj.offsetY },
+        lastPiece: obj.lastPiece || false
+      }));
+    }
   }
 }
-
 // ----- Initialize -----
 const ground = new Ground({
   position: { x: 0, y: canvas.height * 19 / 24 + 40 },
@@ -270,6 +416,7 @@ const player = new Player({
 let blocks = [];
 let spikes = [];
 let circles = [];
+let circlesB = [];
 let retryButton = null;
 let keys = { space: { pressed: false } };
 let intervalId;
@@ -298,8 +445,8 @@ function rectCircleCollision(player, circle) {
            playerBottom < circleTop || 
            playerTop > circleBottom);
 }
-
 function rectTriangleCollision(player, spike) {
+  if (ghostActive) return false;
   const left = player.position.x - player.size / 2;
   const right = player.position.x + player.size / 2;
   const top = player.position.y - player.size / 2;
@@ -309,9 +456,10 @@ function rectTriangleCollision(player, spike) {
     [left, top], [right, top], [left, bottom], [right, bottom]
   ];
 
-  const A = [spike.position.x - 25, spike.position.y + 32];
-  const B = [spike.position.x + 25, spike.position.y + 32];
-  const C = [spike.position.x, spike.position.y - 20];
+  // Calculate rotated vertices
+  const A = getRotatedVertex([-25, 32], spike.position, spike.angle); // Bottom-left base
+  const B = getRotatedVertex([25, 32], spike.position, spike.angle);  // Bottom-right base
+  const C = getRotatedVertex([0, -20], spike.position, spike.angle);  // Tip
 
   for (const [x, y] of corners) {
     if (pointInTriangle(x, y, ...A, ...B, ...C)) return true;
@@ -321,11 +469,12 @@ function rectTriangleCollision(player, spike) {
 function updateSpawnInterval() {
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 9);
+    let idx = Math.floor(Math.random() * 13);
     spawnPiece(idx, canvas.width + 30);
   }, 3000 / ragespeed / speedBoost);
 }
 function rectRectCollision(player, block) {
+  if (ghostActive)return;
   const pL = player.position.x - player.size / 2;
   const pR = player.position.x + player.size / 2;
   const pT = player.position.y - player.size / 2;
@@ -388,13 +537,16 @@ canvas.addEventListener("click", e => {
 // ----- Restart -----
 function restartGame() {
   updateSpawnInterval()
+  playerColor = "#ad11dde3"
   retryButton = null;
   spikes = [];
   bgcolor = "#04006B";
   groundcolor = "darkblue";
   blocks = [];
   circles = [];
+  circlesB = []
   rageActive = false
+  ghostActive = false;
   ragespeed = 1
   rageDuration = 0
   OGrageDuration = 0
@@ -405,7 +557,7 @@ function restartGame() {
   score = 0
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 9)
+    let idx = Math.floor(Math.random() * 13)
     spawnPiece(Math.floor(idx), canvas.width + 30);
     
   }, 3000/ragespeed/speedBoost);
@@ -416,7 +568,7 @@ function restartGame() {
 
 // ----- Start Spawning -----
 intervalId = setInterval(() => {
-  let idx = Math.floor(Math.random() * 9)
+  let idx = Math.floor(Math.random() * 13)
   spawnPiece(Math.floor(idx), canvas.width + 30);
 }, 3000/ragespeed/speedBoost);
 
@@ -446,8 +598,8 @@ function animate(currentTime) {
     bgcolor = '#570000ff'
     groundcolor = 'darkred'
     ragespeed = 2.5
-    rageDuration = 180
-    OGrageDuration = 180
+    rageDuration = 210
+    OGrageDuration = 210
     OGragespeed = 2.5
     rageActive = true
     updateSpawnInterval()
@@ -481,6 +633,24 @@ function animate(currentTime) {
     }
 
     if (circle.position.x + circle.radius < 0) circles.splice(i, 1);
+  }
+  //circles Blue (Ghost Mode)
+  for (let i = circlesB.length - 1; i >= 0; i--) {
+    const circle = circlesB[i];
+    circle.update(delta,speedBoost);
+    if (rectCircleCollision(player, circle)) {
+        ghostActive = true;
+        ghostTimer = GHOST_DURATION;
+        
+        //Set Ghost Appearance
+        playerColor = GHOST_PLAYER_COLOR;
+        playerShadowColor = 'lightblue';
+        playerStroke = 'blue';
+        
+        circlesB.splice(i, 1);
+    }
+
+    if (circle.position.x + circle.radius < 0) circlesB.splice(i, 1);
   }
   // Ground
   if (player.position.y + player.size / 2 >= ground.position.y) {
@@ -527,6 +697,48 @@ function animate(currentTime) {
       OGrageDuration = 0
       updateSpawnInterval()
     } 
+  }
+  if (ghostTimer > 0) {
+    ghostTimer -= 1 * delta;
+    
+    const timeRemaining = ghostTimer / delta; // Time remaining in frames (approx. 60 FPS)
+
+    if (timeRemaining <= 60 && timeRemaining > 0) {
+        // --- 1. Flicker (Frames 60 down to 30) ---
+        // Flicker twice (at 60-50, and 40-30 frames remaining)
+        if (timeRemaining > 30 && (timeRemaining > 50 || (timeRemaining <= 40 && timeRemaining > 30))) {
+            const isVisible = (Math.floor(timeRemaining) % 10) < 5; // Toggles every 5 frames
+            playerColor = isVisible ? GHOST_PLAYER_COLOR : OG_PLAYER_COLOR;
+        } 
+        
+        // --- 2. Fade (Frames 30 down to 0) ---
+        else if (timeRemaining <= 30) {
+            // Calculate the fade factor (0 at 30 frames, 1 at 0 frames)
+            const fadeFactor = (30 - timeRemaining) / 30; 
+            
+            // Note: This requires manually constructing the RGBA string for the fade effect.
+            // OG Color: (173, 17, 221, 1.0)
+            // Ghost Color: (100, 149, 237, 0.4)
+            
+            const r = Math.round(100 + (173 - 100) * fadeFactor);
+            const g = Math.round(149 + (17 - 149) * fadeFactor);
+            const b = Math.round(237 + (221 - 237) * fadeFactor);
+            const a = (0.4 + (1.0 - 0.4) * fadeFactor).toFixed(2);
+            
+            playerColor = `rgba(${r}, ${g}, ${b}, ${a})`;
+        }
+    } 
+
+    if (ghostTimer <= 0) {
+        ghostActive = false;
+        for (const block of blocks) {
+            rectRectCollision(player, block);
+        }
+        // Reset colors to final, opaque, non-ghost state
+        playerColor = OG_PLAYER_COLOR; 
+        playerStroke = 'white';
+        playerShadowColor = 'transparent';
+    }
   }
 }
 
