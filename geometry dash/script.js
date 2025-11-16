@@ -331,10 +331,8 @@ const levelPieces = {
     { type: "block", offsetX: 170, offsetY: 120, height: 50 },
     { type: "spike", offsetX: 208, offsetY: 0},
     { type: "spike", offsetX: 260, offsetY: 0},
-    { type: "spike", offsetX: 312, offsetY: 0},
+    { type: "spike", offsetX: 312, offsetY: 0,lastPiece:true},
     {type: 'circle', offsetX:321,offsetY:250},
-    { type: "spike", offsetX: 364, offsetY: 0},
-    { type: "spike", offsetX: 416, offsetY: 0,lastPiece:true},
   ],
   9: [
     { type: "block", offsetX: 0, offsetY: 0, height: 50 },
@@ -581,36 +579,66 @@ addEventListener("keyup", e => {
 });
 
 addEventListener('mousedown',e=>{
-  keys.space.pressed = true
+  keys.space.pressed = true
 })
 addEventListener('mouseup',e=>{
-  keys.space.pressed = false
+  keys.space.pressed = false
 })
+
+// ----- Controls (Touch) -----
 canvas.addEventListener('dblclick', (e) => {
-    // Prevent the default browser action (which is often zooming)
     e.preventDefault(); 
 });
+
+// Start the jump on touchstart
 addEventListener('touchstart',e=>{
-    // e.preventDefault() is good practice to prevent mobile scrolling/zooming
     e.preventDefault(); 
     keys.space.pressed = true;
 })
 
-// Stop the jump when the finger is lifted
+// Stop the jump on touchend
 addEventListener('touchend',e=>{
     e.preventDefault(); 
-    // If the game is over, we also want to check for the retry button
-    if (isGameOver) { 
-      handleInput(e); // <--- Call handleInput on touchend if game over
-    } else {
-      keys.space.pressed = false; // <--- Stop jumping if game isn't over
-    }
+    // Only handles the jump stop. Retry is handled by pointerup.
+    keys.space.pressed = false; 
 })
 
-// Attach handleInput for desktop 'click' (mouseup/mousedown/touchend don't always align)
-canvas.addEventListener("click", handleInput); // <--- Keep 'click' for desktop
-// We don't need 'touchend' listener for handleInput here, it's called above inside touchend logic
+// ----- Click/Touch Retry Handler (Using pointerup for reliability) -----
+function handleInput(e) {
+    // Prevent the browser from scrolling, zooming, or context menus
+    e.preventDefault(); 
+    
+    // Only proceed if the game is over and the retry button is drawn
+    if (!isGameOver || !retryButton) {
+        return; 
+    }
 
+    // Determine coordinates (clientX/Y work for both mouse and pointer events)
+    let mx, my;
+    const rect = canvas.getBoundingClientRect();
+
+    // If it's a touch event, use the last change
+    if (e.changedTouches && e.changedTouches.length > 0) {
+        mx = e.changedTouches[0].clientX - rect.left;
+        my = e.changedTouches[0].clientY - rect.top;
+    } else {
+        // Standard pointer/mouse event
+        mx = e.clientX - rect.left;
+        my = e.clientY - rect.top;
+    }
+
+    // Retry button logic
+    const { x, y, width, height } = retryButton;
+    if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
+        // Crucial: Reset key state before restarting
+        keys.space.pressed = false; 
+        restartGame();
+    }
+}
+
+// Attach the unified input handler to the canvas for retry
+// 'pointerup' is recommended as it covers both mouse clicks and touch releases reliably.
+canvas.addEventListener("pointerup", handleInput);
 // ... (rest of your code) ...
 
 // ----- Click Retry -----
