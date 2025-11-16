@@ -23,7 +23,13 @@ const GHOST_PLAYER_COLOR = "rgba(129, 173, 255, 0.3)";
 let ghostTimer = 0; // Timer in frames (3 seconds * 60 fps = 180)
 const GHOST_DURATION = 210;
 const OG_PLAYER_COLOR = "#ad11dde3"; // Store the original color
-
+const audioFiles = {
+    jump: new Audio('sounds/jump effect.mp3'), 
+    collect: new Audio('sounds/yelloworb.mp3'), //yellow orb
+    collect2: new Audio('sounds/blueorb transform.mp3'),//blue orb collect and also end
+    ghostMode: new Audio('sounds/ghostmode2.mp3'),
+    death: new Audio('sounds/death effect.mp3'),
+};
 /**
  * Helper to get the world coordinates of a vertex after rotation
  * @param {Array<number>} vertex - The [x, y] local coords of the vertex
@@ -238,6 +244,8 @@ class CircleB {
     this.draw();
   }
 }
+
+
 function spawnParticles(x, y, playerColorString) {
     let baseColor;
     
@@ -409,7 +417,46 @@ const levelPieces = {
     
     { type: "block", offsetX: 260, offsetY: 150, height: 50 },
     { type: "block", offsetX: 260, offsetY: 100, height: 50, lastPiece: true },
-  ]
+  ],
+  13: [
+    {type: 'circle', offsetX:0,offsetY:20},
+    { type: "spike", offsetX: 104, offsetY: 0},
+    { type: "spike", offsetX: 156, offsetY: 0},
+    { type: "block", offsetX: 280, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 50, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 100, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 150, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 200, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 300, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 350, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 400, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 450, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 500, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 550, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 600, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 650, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 700, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 750, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 800, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 850, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 900, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 950, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1000, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1050, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1100, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1150, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1200, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1250, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1300, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1350, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1400, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1450, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1500, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1550, height: 50 },
+    { type: "block", offsetX: 280, offsetY: 1600, height: 50, lastPiece:true },
+    {type: 'circleb', offsetX:208,offsetY:200},
+  ],
 };
 function spawnPiece(pieceName, startX) {
   const piece = levelPieces[pieceName];
@@ -532,7 +579,7 @@ function rectTriangleCollision(player, spike) {
 function updateSpawnInterval() {
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 13);
+    let idx = Math.floor(Math.random() * 14);
     spawnPiece(idx, canvas.width + 30);
   }, 3000 / ragespeed / speedBoost);
 }
@@ -701,7 +748,7 @@ function restartGame() {
   score = 0
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 13)
+    let idx = Math.floor(Math.random() * 14)
     spawnPiece(Math.floor(idx), canvas.width + 30);
     
   }, 3000/ragespeed/speedBoost);
@@ -712,7 +759,7 @@ function restartGame() {
 
 // ----- Start Spawning -----
 intervalId = setInterval(() => {
-  let idx = Math.floor(Math.random() * 13)
+  let idx = Math.floor(Math.random() * 14)
   spawnPiece(Math.floor(idx), canvas.width + 30);
 }, 3000/ragespeed/speedBoost);
 
@@ -816,6 +863,8 @@ function animate(currentTime) {
 
       if (rectCircleCollision(player, circle)) {
         // Jump boost
+        audioFiles.collect.currentTime = 0; 
+        audioFiles.collect.play().catch(e => console.error("Jump audio failed:", e));
         player.velocity.y = -20; // ~1.5x normal jump
 
         speedBoost = 3; // global multiplier
@@ -838,6 +887,11 @@ function animate(currentTime) {
           ghostActive = true;
           ghostTimer = GHOST_DURATION;
           
+          audioFiles.collect2.currentTime = 0; 
+          audioFiles.collect2.play().catch(e => console.error("Jump audio failed:", e));
+          
+          audioFiles.ghostMode.currentTime = 0; 
+          audioFiles.ghostMode.play().catch(e => console.error("Jump audio failed:", e));
           //Set Ghost Appearance
           playerColor = GHOST_PLAYER_COLOR;
           playerShadowColor = 'lightblue';
@@ -857,8 +911,9 @@ function animate(currentTime) {
   }
 
   // Jump
-  if (keys.space.pressed && onSomething) player.velocity.y = -14;
-
+  if (keys.space.pressed && onSomething){
+  player.velocity.y = -14;
+}
   // Rotation
   if (!onSomething) player.rotation += 0.042 * delta;
   else player.rotation = 0;
@@ -874,6 +929,8 @@ function animate(currentTime) {
               spawnParticles(player.position.x, player.position.y, playerColor);
               player.visible = false; // Hide player
               isGameOver = true; // Set flag to stop next frame
+              audioFiles.death.currentTime = 0; 
+              audioFiles.death.play().catch(e => console.error("Jump audio failed:", e));
           }
       }
       if (spike.position.x + 40 < 0 && spike.lastPiece){
@@ -902,15 +959,13 @@ function animate(currentTime) {
       OGrageDuration = 0
       updateSpawnInterval()
     } 
-  }
-  if (ghostTimer > 0) {
-    ghostTimer -= 1 * delta;
+  }if (ghostTimer > 0) {
+    ghostTimer -= 1 * delta; // Use delta for time-compensated timer
     
     const timeRemaining = ghostTimer / delta; // Time remaining in frames (approx. 60 FPS)
 
     if (timeRemaining <= 60 && timeRemaining > 0) {
         // --- 1. Flicker (Frames 60 down to 30) ---
-        // Flicker twice (at 60-50, and 40-30 frames remaining)
         if (timeRemaining > 30 && (timeRemaining > 50 || (timeRemaining <= 40 && timeRemaining > 30))) {
             const isVisible = (Math.floor(timeRemaining) % 10) < 5; // Toggles every 5 frames
             playerColor = isVisible ? GHOST_PLAYER_COLOR : OG_PLAYER_COLOR;
@@ -921,9 +976,6 @@ function animate(currentTime) {
             // Calculate the fade factor (0 at 30 frames, 1 at 0 frames)
             const fadeFactor = (30 - timeRemaining) / 30; 
             
-            // OG Color: (173, 17, 221, 1.0) -> from #ad11dde3 (approx 173, 17, 221)
-            // Ghost Color: (129, 173, 255, 0.3)
-            
             const r = Math.round(129 + (173 - 129) * fadeFactor);
             const g = Math.round(173 + (17 - 173) * fadeFactor);
             const b = Math.round(255 + (221 - 255) * fadeFactor);
@@ -933,15 +985,23 @@ function animate(currentTime) {
         }
     } 
 
-    if (ghostTimer <= 0) {
+    if (ghostTimer <= 0 && ghostActive) { // Check ghostActive to run this block only once
+        // --- GHOST MODE END ---
         ghostActive = false;
-        for (const block of blocks) {
-            rectRectCollision(player, block);
-        }
+        
         // Reset colors to final, opaque, non-ghost state
         playerColor = OG_PLAYER_COLOR; 
         playerStroke = 'white';
         playerShadowColor = 'transparent';
+        
+        // Play the exit/transform sound
+        audioFiles.collect2.currentTime = 0; 
+        audioFiles.collect2.play().catch(e => console.error("Exit Ghost Mode audio failed:", e));
+
+        // Check for immediate collision (optional, but good practice)
+        for (const block of blocks) {
+            rectRectCollision(player, block);
+        }
     }
   }
 }
