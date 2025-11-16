@@ -599,6 +599,7 @@ addEventListener('touchstart',e=>{
 // Stop the jump when the finger is lifted
 addEventListener('touchend',e=>{
     e.preventDefault(); 
+    if(isGameOver)handleInput(e)
     keys.space.pressed = false;
 })
 // ----- Click Retry -----
