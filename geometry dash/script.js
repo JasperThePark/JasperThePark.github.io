@@ -587,54 +587,65 @@ addEventListener('mouseup',e=>{
   keys.space.pressed = false
 })
 canvas.addEventListener('dblclick', (e) => {
-    // Prevent the default browser action (which is often zooming)
-    e.preventDefault(); 
+    // Prevent the default browser action (which is often zooming)
+    e.preventDefault(); 
 });
 addEventListener('touchstart',e=>{
-    // e.preventDefault() is good practice to prevent mobile scrolling/zooming
-    e.preventDefault(); 
-    keys.space.pressed = true;
+    // e.preventDefault() is good practice to prevent mobile scrolling/zooming
+    e.preventDefault(); 
+    keys.space.pressed = true;
 })
 
 // Stop the jump when the finger is lifted
 addEventListener('touchend',e=>{
-    e.preventDefault(); 
-    if(isGameOver)handleInput(e)
-    keys.space.pressed = false;
+    e.preventDefault(); 
+    // If the game is over, we also want to check for the retry button
+    if (isGameOver) { 
+      handleInput(e); // <--- Call handleInput on touchend if game over
+    } else {
+      keys.space.pressed = false; // <--- Stop jumping if game isn't over
+    }
 })
+
+// Attach handleInput for desktop 'click' (mouseup/mousedown/touchend don't always align)
+canvas.addEventListener("click", handleInput); // <--- Keep 'click' for desktop
+// We don't need 'touchend' listener for handleInput here, it's called above inside touchend logic
+
+// ... (rest of your code) ...
+
 // ----- Click Retry -----
 function handleInput(e) {
-    // Determine coordinates based on event type
-    let mx, my;
-    const rect = canvas.getBoundingClientRect();
+    // Prevent default touch behaviors (like scrolling/zooming)
+    e.preventDefault(); // Moved inside to prevent scroll on tap
 
-    if (e.touches && e.touches.length > 0) {
-        // Touch event (touchend or touchstart)
-        mx = e.changedTouches[0].clientX - rect.left;
-        my = e.changedTouches[0].clientY - rect.top;
-    } else {
-        // Mouse event (click)
-        mx = e.clientX - rect.left;
-        my = e.clientY - rect.top;
-    }
+    // Determine coordinates based on event type
+    let mx, my;
+    const rect = canvas.getBoundingClientRect();
 
-    // Prevent default touch behaviors (like scrolling/zooming)
-    if (e.type !== 'click') {
-        e.preventDefault();
-    }
+    if (e.touches && e.touches.length > 0) {
+        // Touch event (touchend)
+        mx = e.changedTouches[0].clientX - rect.left;
+        my = e.changedTouches[0].clientY - rect.top;
+    } else {
+        // Mouse event (click)
+        mx = e.clientX - rect.left;
+        my = e.clientY - rect.top;
+    }
 
-    // Retry button logic
-    if (retryButton) {
-        const { x, y, width, height } = retryButton;
-        if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
-            restartGame();
-        }
+    // Retry button logic ONLY executes if the game is over
+    if (isGameOver && retryButton) { // <--- CRITICAL CHECK: Only process retry if game is over
+        const { x, y, width, height } = retryButton;
+        if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
+            // IMPORTANT: Stop the key press that initiated the touch/click
+            keys.space.pressed = false; 
+            restartGame();
+        }
+    } else if (!isGameOver && e.type === 'click') {
+      // For desktop users who click for a jump (though you have mousedown/up for that)
+      keys.space.pressed = true;
+      setTimeout(() => keys.space.pressed = false, 50); // Simulates a quick tap/click
     }
 }
-
-// Attach the handler to both click (desktop/fallback) and touchend (mobile)
-canvas.addEventListener("click", handleInput);
-canvas.addEventListener("touchend", handleInput);
 
 // ----- Restart -----
 function restartGame() {
