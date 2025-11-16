@@ -889,7 +889,7 @@ function animate(currentTime) {
   }
   
   if (speedBoostTimer > 0) {
-    speedBoostTimer--;
+    speedBoostTimer -= 1 * delta;
     if (speedBoostTimer <= 0) speedBoost = 1;
     updateSpawnInterval()
   }
