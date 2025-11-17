@@ -244,7 +244,32 @@ class CircleB {
     this.draw();
   }
 }
+//circle with no speed effect just a jump boost
+class CircleW {
+  constructor({ position }, lastPiece) {
+    this.position = position;
+    this.radius = 20;
+    this.velocity = { x: -5, y: 0 };
+    this.lastPiece = lastPiece;
+  }
 
+  draw() {
+    context.beginPath();
+    context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    context.fillStyle = "orange"; // Choose a distinct color (e.g., Orange)
+    context.shadowColor = "orange";
+    context.shadowBlur = 20;
+    context.fill();
+    context.closePath();
+    context.shadowBlur = 0;
+    context.shadowColor = "transparent";
+  }
+
+  update(delta, speedBoost = 1) {
+    this.position.x += this.velocity.x * delta * speedBoost * ragespeed;
+    this.draw();
+  }
+}
 
 function spawnParticles(x, y, playerColorString) {
     let baseColor;
@@ -457,6 +482,30 @@ const levelPieces = {
     { type: "block", offsetX: 280, offsetY: 1600, height: 50, lastPiece:true },
     {type: 'circleb', offsetX:208,offsetY:200},
   ],
+  14: [
+    { type: "block", offsetX: -52, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 52, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 0, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 156, offsetY: 50},
+    {type: 'circlew', offsetX:275,offsetY:20},
+    { type: "spike", offsetX: 350, offsetY: 0},
+
+    //upper
+    { type: "block", offsetX: -52, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 0, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 52, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 104, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 156, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 208, offsetY: 250, height: 50 },
+    { type: "spike", offsetX: 212, offsetY: 250, rotation:180},
+    { type: "block", offsetX: 260, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 312, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 364, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 416, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 468, offsetY: 250, height: 50 },
+  ],
 };
 function spawnPiece(pieceName, startX) {
   const piece = levelPieces[pieceName];
@@ -511,6 +560,12 @@ function spawnPiece(pieceName, startX) {
         lastPiece: obj.lastPiece || false
       }));
     }
+    else if (obj.type === "circlew") { // <<< ADDED
+      circlesW.push(new CircleW({
+        position: { x: startX + obj.offsetX, y: ground.position.y - obj.offsetY },
+        lastPiece: obj.lastPiece || false
+      }));
+    }
   }
 }
 // ----- Initialize -----
@@ -527,6 +582,7 @@ let blocks = [];
 let spikes = [];
 let circles = [];
 let circlesB = [];
+let circlesW = [];
 let retryButton = null;
 let keys = { space: { pressed: false } };
 let intervalId;
@@ -579,7 +635,7 @@ function rectTriangleCollision(player, spike) {
 function updateSpawnInterval() {
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 14);
+    let idx = Math.floor(Math.random() * 15);
     spawnPiece(idx, canvas.width + 30);
   }, 3000 / ragespeed / speedBoost);
 }
@@ -735,7 +791,8 @@ function restartGame() {
   groundcolor = "darkblue";
   blocks = [];
   circles = [];
-  circlesB = []
+  circlesB = [];
+  circlesW = [];
   rageActive = false
   ghostActive = false;
   ragespeed = 1
@@ -748,7 +805,7 @@ function restartGame() {
   score = 0
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 14)
+    let idx = Math.floor(Math.random() * 15)
     spawnPiece(Math.floor(idx), canvas.width + 30);
     
   }, 3000/ragespeed/speedBoost);
@@ -759,7 +816,7 @@ function restartGame() {
 
 // ----- Start Spawning -----
 intervalId = setInterval(() => {
-  let idx = Math.floor(Math.random() * 14)
+  let idx = Math.floor(Math.random() * 15)
   spawnPiece(Math.floor(idx), canvas.width + 30);
 }, 3000/ragespeed/speedBoost);
 
@@ -901,6 +958,29 @@ function animate(currentTime) {
       }
 
       if (circle.position.x + circle.radius < 0) circlesB.splice(i, 1);
+    }
+  }
+  //circles Weak
+  if (!isGameOver) {
+    for (let i = circlesW.length - 1; i >= 0; i--) {
+      const circle = circlesW[i];
+      circle.update(delta, speedBoost);
+
+      if (rectCircleCollision(player, circle)) {
+        // WEAKER JUMP BOOST
+        audioFiles.collect.currentTime = 0; 
+        audioFiles.collect.play().catch(e => console.error("Collect audio failed:", e));
+        
+        player.velocity.y = -20;
+
+        speedBoost = 1.5; // Keep the same speed boost effect
+        speedBoostTimer = 10; 
+        updateSpawnInterval()
+        
+        circlesW.splice(i, 1);
+      }
+
+      if (circle.position.x + circle.radius < 0) circlesW.splice(i, 1);
     }
   }
   // Ground
