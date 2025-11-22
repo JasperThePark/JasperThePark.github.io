@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EZine Page</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="img/geometry_logov4.png" type="image/x-icon">
+
+  <!-- Remix Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- AOS Animation -->
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <a href="#home" class="logo">Mckernan Gr9 <span>EZine</span></a>
+    <ul class="navlist">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About Us</a></li>
+      <li><a href="#zine">Stories</a></li>
+      <li><a href="#submit">Submit</a></li>
+    </ul>
+    <a href="#submit" class="h-btn">Submit Work</a>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <div class="main-content" data-aos="fade-in">
+      <h1>Mckernan Grade 9 <span>EZine</span></h1>
+      <p>The website for sharing our stories.</p>
+    </div>
+    <i class="ri-arrow-down-s-line" id="down-arrow"></i>
+  </section>
+
+  <!-- About Section -->
+<section class="about" id="about">
+  <div class="about-text" data-aos="zoom-in-up">
+    <h2>About <span>Us</span> 🌿</h2>
+
+    <!-- Purpose -->
+    <h3>Our Purpose</h3>
+    <p>
+      This website was created for students of Mckernan as a place to share their stories, poems, artwork, and creative ideas with the school community. 
+      We want to give everyone a voice and inspire others to express themselves.
+    </p>
+
+    <!-- How to Submit -->
+    <h3>How To Submit</h3>
+    <ol>
+      <li>Write your story, poem, or artwork in any format you like.</li>
+      <li>Submit it via the <a href="#submit">form</a> below.</li>
+      <li>Our team reviews submissions and features your work in the EZine for all to enjoy.</li>
+      <li>Share your creation with friends and classmates to inspire others!</li>
+    </ol>
+
+    <!-- Meet Our Team -->
+    <h3>Meet Our Team</h3>
+    <p>
+      The EZine is run by Grade 9 students of Mckernan who contribute stories, edit submissions, and design the website. 
+      Our team is passionate about creativity, collaboration, and making sure every student’s work is showcased beautifully.
+    </p>
+
+    <a href="#zine" class="btn">View Stories</a>
+  </div>
+
+  <div class="about-right" data-aos="zoom-in-down">
+    <div class="about-img">
+      <img src="images/about-us.JPG" alt="About us image">
+    </div>
+
+    <div class="student-voices">
+      <blockquote id="quote1">
+        
+      </blockquote>
+      <blockquote id="quote2">
+        
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+
+  <!-- Stories Section -->
+  <section class="portfolio" id="zine">
+    <div class="center-text" data-aos="fade-down">
+      <h2>Our <span>Stories</span></h2>
+    </div>
+    <div class="Portfolio-content" data-aos="zoom-in-up">
+      
+      <div class="row">
+        <a href="/time travel/" target="_blank">
+          <img src="images/time-1739625_1280.jpg" alt="An image of time traveling">
+          <div class="main-row">
+            <div class="row-text"><h5>Jasper Hung</h5></div>
+            <div class="row-icon"><i class="ri-book-mark-fill"></i></div>
+          </div>
+          <h4>The Past We wish to Change</h4>
+        </a>
+      </div>
+
+      <div class="row">
+        <a href="/time travel/" target="_blank">
+          <img src="images/artificial-intelligence-4389372_1280.jpg" alt="Story 2">
+          <div class="main-row">
+            <div class="row-text"><h5>Student A</h5></div>
+            <div class="row-icon"><i class="ri-book-mark-fill"></i></div>
+          </div>
+          <h4>Artificial Intelligence(AI)</h4>
+        </a>
+      </div>
+      
+      <div class="row">
+        <a href="/time travel/" target="_blank">
+          <img src="images/spaceship-4828098_1280.jpg" alt="Story 2">
+          <div class="main-row">
+            <div class="row-text"><h5>Student B</h5></div>
+            <div class="row-icon"><i class="ri-book-mark-fill"></i></div>
+          </div>
+          <h4>Are Aliens Real?</h4>
+        </a>
+      </div>
+
+      <div class="row">
+        <a href="/time travel/" target="_blank">
+          <img src="images/information-160948_1280.png" alt="Story 2">
+          <div class="main-row">
+            <div class="row-text"><h5>Student C</h5></div>
+            <div class="row-icon"><i class="ri-book-mark-fill"></i></div>
+          </div>
+          <h4>How Was this Website Made?</h4>
+        </a>
+      </div>
+      
+      <!-- Add more story cards as needed -->
+    </div>
+  </section>
+
+  <!-- Submit Section -->
+<section class="contact" id="submit">
+  <div class="form-container" data-aos="fade-up">
+    <h2>Submit <span>Your Work</span></h2>
+    <form action="https://formspree.io/f/xjkzaabb" method="POST">
+      <input type="text" name="name" placeholder="Your Name" required>
+      <input type="email" name="email" placeholder="Email Address" required>
+      <textarea name="message" placeholder="Your Message" rows="6" required></textarea>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</section>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="copyright">
+      <p>Created by Jasper Hung - student at mckernan :D</p>
+    </div>
+    <a href="#home" class="scroll-top"><i class="ri-arrow-up-s-fill"></i></a>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init({ offset: 300, duration: 1400 });
+
+    // Hide down arrow on scroll
+    const arrow = document.getElementById('down-arrow');
+    let isScrolling;
+    window.addEventListener('scroll', () => {
+      arrow.style.opacity = 0;
+      clearTimeout(isScrolling);
+      isScrolling = setTimeout(() => {
+        if(window.scrollY === 0) arrow.style.opacity = 1;
+      }, 1500);
+    });
+
+    // Smooth scroll for arrow
+    arrow.addEventListener('click', () => {
+      document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    quote1 = document.getElementById('quote1')
+    quote2 = document.getElementById('quote2')
+    prompts = [
+      "\"Submitting my artwork was exciting! It's amazing to have a space where everyone's work matters.\" – Jasper",
+      "\"I love seeing my classmates’ stories—it motivates me to create more!\" – Student B",
+      "\"Writing for the EZine pushed me to be more creative than ever.\" – Student C",
+      "\"I feel proud when my poem is featured!\" – Student D",
+      "\"Seeing everyone’s artwork makes our school feel more connected.\" – Student E",
+      "\"I enjoy reading my friends’ stories—it inspires me to write more.\" – Student F",
+      "\"Submitting my work was simple and fun!\" – Student G",
+      "\"I love that the EZine showcases all kinds of creativity.\" – Student H",
+      "Developer's secret quote"
+      
+    ];
+    r1 = Math.floor(Math.random()*prompts.length)
+    quote1.innerHTML = prompts[r1]
+    prompts.splice(r1,1)
+    r2 = prompts[Math.floor(Math.random()*prompts.length)]
+    quote2.innerHTML = r2
+  </script>
+</body>
+</html>
