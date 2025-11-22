@@ -70,7 +70,27 @@ header .logo span {
   background-color: var(--main-color);
   color: var(--page-bg);
 }
+.nav-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+}
 
+.navlist {
+  display: flex;
+  flex-wrap: nowrap; /* prevent wrapping */
+  gap: 30px;
+}
+.nav-wrapper::-webkit-scrollbar {
+  display: none;
+}
+@media(max-width: 600px) {
+  .nav-wrapper {
+    overflow-x: auto;
+  }
+  .navlist {
+    flex-wrap: nowrap;
+  }
+}
 /* Hero Section */
 .hero {
   height: 100vh;
