@@ -51,14 +51,14 @@
     <!-- Purpose -->
     <h3>Our Purpose</h3>
     <p>
-      This website was created for students of Mckernan as a place to share their stories, poems, artwork, and creative ideas with the school community. 
+      This website was created for students of Mckernan as a place to share their stories, poems, and creative ideas with the school community. 
       We want to give everyone a voice and inspire others to express themselves.
     </p>
 
     <!-- How to Submit -->
     <h3>How To Submit</h3>
     <ol>
-      <li>Write your story, poem, or artwork in any format you like.</li>
+      <li>Write your story, poem, or idea in any format you like.</li>
       <li>Submit it via the <a href="#submit">form</a> below.</li>
       <li>Our team reviews submissions and features your work in the EZine for all to enjoy.</li>
       <li>Share your creation with friends and classmates to inspire others!</li>
@@ -162,7 +162,7 @@
   <!-- Footer -->
   <div class="footer">
     <div class="copyright">
-      <p>Created by Jasper Hung - student at mckernan :D</p>
+      <a href="./Unknown-page/">"Some secrets aren’t meant to be obvious."- Unknown</a> 
     </div>
     <a href="#home" class="scroll-top"><i class="ri-arrow-up-s-fill"></i></a>
   </div>
@@ -188,9 +188,10 @@
       document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
     });
 
-    quote1 = document.getElementById('quote1')
-    quote2 = document.getElementById('quote2')
-    prompts = [
+    quote1 = document.getElementById('quote1');
+    quote2 = document.getElementById('quote2');
+
+    normalPrompts = [
       "\"Submitting my artwork was exciting! It's amazing to have a space where everyone's work matters.\" – Jasper",
       "\"I love seeing my classmates’ stories—it motivates me to create more!\" – Student B",
       "\"Writing for the EZine pushed me to be more creative than ever.\" – Student C",
@@ -199,14 +200,49 @@
       "\"I enjoy reading my friends’ stories—it inspires me to write more.\" – Student F",
       "\"Submitting my work was simple and fun!\" – Student G",
       "\"I love that the EZine showcases all kinds of creativity.\" – Student H",
-      "Developer's secret quote"
-      
+      "\"Every issue has something that surprises me.\" – Student I",
+      "\"The EZine makes our school feel more creative and confident.\" – Student J",
+      "\"I never thought my story would be published—now I want to write more.\" – Student K",
+      "\"Everyone’s work shows a different side of our school community.\" – Student L",
+      "\"Not every story is printed with ink.\" – Unknown",
+      "\"Some pages speak louder than they look.\" – Anonymous",
+      "\"There’s always more beneath the surface.\" – ???"
     ];
-    r1 = Math.floor(Math.random()*prompts.length)
-    quote1.innerHTML = prompts[r1]
-    prompts.splice(r1,1)
-    r2 = prompts[Math.floor(Math.random()*prompts.length)]
-    quote2.innerHTML = r2
+
+    // Add secret quotes randomly
+    if (Math.random() < 0.5) {
+      normalPrompts.push("\"01000011 01101100 01101001 01100011 01101011 00100000 01001101 01100101\"");
+    }
+    if (Math.random() < 0.5) {
+      normalPrompts.push("\"Developer's secret quote\" - clickMe");
+    }
+
+    prompts = normalPrompts;
+
+
+    // Helper to inject HTML safely
+    function renderQuote(element, text) {
+      if (text === "\"01000011 01101100 01101001 01100011 01101011 00100000 01001101 01100101\"") {
+        element.innerHTML =
+          `<a href="https://jasperthepark.github.io/math%20speed%20test">${text}</a>`;
+      } else if (text === "\"Developer's secret quote\" - clickMe") {
+        element.innerHTML =
+          `<a href="https://jasperthepark.github.io/geometry%20dash">${text}</a>`;
+      } else {
+        element.innerHTML = text;
+      }
+    }
+
+
+    // Pick quote 1
+    let r1 = Math.floor(Math.random() * prompts.length);
+    renderQuote(quote1, prompts[r1]);
+    prompts.splice(r1, 1);
+
+    // Pick quote 2
+    let r2 = Math.floor(Math.random() * prompts.length);
+    renderQuote(quote2, prompts[r2]);
+
   </script>
 </body>
 </html>
