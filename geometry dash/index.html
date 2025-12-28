@@ -13,18 +13,29 @@
   canvas {
     display: block;
   }
-  #leaderboard-overlay {
-    font-family: 'Courier New', Courier, monospace; /* Or a GD font if you have one */
-    border: 5px solid #2e3bcc; 
-    box-shadow: 0 0 20px #2e5bcc;
+ #leaderboard-overlay {
+    display: none; 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    background: rgba(14, 18, 126, 0.95); 
+    color: white; 
+    padding: 15px;
+    border: 4px solid #2e3bcc;
     border-radius: 15px;
-    min-width: 40%;
-  }
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+    z-index: 100;
+    width: 90%;
+    max-width: 350px; /* Slimmer so it fits next to things */
+}
 
   #leaderboard li {
       background: rgb(14, 18, 126);
       margin: 5px 0;
-      padding: 10px;
+      font-size: 14px;
+      padding: 5px 10px;
       border-radius: 5px;
       display: flex;
       justify-content: space-between;
