@@ -12,6 +12,7 @@ let playerShadowColor = 'transparent'
 let playerStroke = 'white'
 let rageDuration = 0
 let last,x = 0.0
+let fontsize = 0
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 let OGragespeed = 1
@@ -914,9 +915,20 @@ function animate(currentTime) {
   player.update(delta); 
     
   //score
-  context.font = "bold 25px sans-serif";
-  context.fillStyle = "white";
-  context.fillText(`Score: ${score}`, 25, 25);
+  if (window.innerWidth < 600) {
+      // Mobile settings
+      fontsize = 40; 
+      context.font = `bold ${fontsize}px sans-serif`;
+      context.fillStyle = "white";
+      context.fillText(`Score: ${score}`, 0, 40);
+  } else {
+      // Desktop settings
+      fontsize = 25;
+      context.font = `bold ${fontsize}px sans-serif`;
+      context.fillStyle = "white";
+      context.fillText(`Score: ${score}`, 20, 20);
+  }
+  
 
   player.velocity.y += 0.8 * delta;
   onSomething = false;
