@@ -731,12 +731,12 @@ addEventListener('touchend',e=>{
     keys.space.pressed = false; 
 })
 
-// ----- Click/Touch Retry Handler (Using pointerup for reliability) -----
+
 function handleInput(e) {
-    // Prevent the browser from scrolling, zooming, or context menus
+
     e.preventDefault(); 
     
-    // Only proceed if the game is over and the retry button is drawn
+
     if (!isGameOver || !retryButton) {
         return; 
     }
@@ -760,16 +760,14 @@ function handleInput(e) {
     if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
         // Crucial: Reset key state before restarting
         keys.space.pressed = false; 
+        document.getElementById('leaderboard-overlay').style.display = 'none';
         restartGame();
     }
 }
 
-// Attach the unified input handler to the canvas for retry
-// 'pointerup' is recommended as it covers both mouse clicks and touch releases reliably.
-canvas.addEventListener("pointerup", handleInput);
-// ... (rest of your code) ...
 
-// ----- Click Retry -----
+canvas.addEventListener("pointerup", handleInput);
+
 function handleInput(e) {
     // Prevent default touch behaviors (like scrolling/zooming)
     e.preventDefault(); // Moved inside to prevent scroll on tap
@@ -794,6 +792,7 @@ function handleInput(e) {
         if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
             // IMPORTANT: Stop the key press that initiated the touch/click
             keys.space.pressed = false; 
+            document.getElementById('leaderboard-overlay').style.display = 'none';
             restartGame();
         }
     } else if (!isGameOver && e.type === 'click') {
@@ -803,13 +802,13 @@ function handleInput(e) {
     }
 }
 
-// ----- Restart -----
+
 function restartGame() {
-  isGameOver = false; // <<< RESET: Game state flag
+  isGameOver = false; 
   player.visible = true; 
   particles = [];      
   updateSpawnInterval()
-  playerColor = OG_PLAYER_COLOR // Use the constant
+  playerColor = OG_PLAYER_COLOR 
   retryButton = null;
   spikes = [];
   bgcolor = "#04006B";
@@ -882,8 +881,6 @@ function animate(currentTime) {
       // A more robust check: ensure all death particles have faded/left
       gameOverScreen();
       cancelAnimationFrame(currentAnimationId);
-      const overlay = document.getElementById('leaderboard-overlay');
-      overlay.style.display = 'block';
 
       const playerName = prompt("Game Over! Enter your name:");
       if (playerName) {
@@ -915,20 +912,13 @@ function animate(currentTime) {
   player.update(delta); 
     
   //score
-  if (window.innerWidth < 600) {
-      // Mobile settings
-      fontsize = 40; 
-      context.font = `bold ${fontsize}px sans-serif`;
-      context.fillStyle = "white";
-      context.fillText(`Score: ${score}`, 0, 40);
-  } else {
-      // Desktop settings
-      fontsize = 25;
-      context.font = `bold ${fontsize}px sans-serif`;
-      context.fillStyle = "white";
-      context.fillText(`Score: ${score}`, 20, 20);
-  }
-  
+  let fontSize = window.innerWidth < 600 ? 50 : 25; 
+  context.font = `bold ${fontSize}px sans-serif`;
+  context.fillStyle = "white";
+  context.textAlign = "left"; 
+
+  context.fillText(`Score: ${score}`, 20, fontSize + 10);
+    
 
   player.velocity.y += 0.8 * delta;
   onSomething = false;
@@ -1144,26 +1134,43 @@ function animate(currentTime) {
 }
 // ----- Game Over -----
 function gameOverScreen() {
-  context.font = "bold 100px sans-serif";
-  context.fillStyle = "white";
-  context.fillText("Game Over", canvas.width / 3, canvas.height / 2 - 100);
+    let titleSize = window.innerWidth < 600 ? 50 : 100;
+    context.font = `bold ${titleSize}px sans-serif`;
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 150);
 
-  const w = 300, h = 100;
-  const x = canvas.width / 2 - w / 2;
-  const y = canvas.height / 2;
+    const w = 150, h=60
+    let buttonX;
+    
+    if (window.innerWidth < 600) {
+        buttonX = canvas.width / 2 - w - 10;//left on mobile
+    } else {
+        buttonX = canvas.width / 2 - w / 2;//center for laptop or bigger
+    }
+    
+    const buttonY = canvas.height / 2 - 150+titleSize;
 
-  context.fillStyle = "#222";
-  context.fillRect(x, y, w, h);
-  context.strokeStyle = "white";
-  context.lineWidth = 1;
-  context.strokeRect(x, y, w, h);
+    context.fillStyle = "#2e3bcc";
+    context.fillRect(buttonX, buttonY, w, h);
+    context.font = "bold 20px sans-serif";
+    context.fillStyle = "white";
+    context.fillText("Retry", buttonX + w / 2, buttonY + 38);
 
-  context.font = "bold 50px sans-serif";
-  context.fillStyle = "white";
-  context.fillText("Retry", x + 75, y + 65);
+    retryButton = { x: buttonX, y: buttonY, width: w, height:h };
 
-  retryButton = { x, y, width: w, height: h };
-  
+    const overlay = document.getElementById('leaderboard-overlay');
+    overlay.style.display = 'block';
+    
+    if (window.innerWidth < 600) {
+        overlay.style.left = "70%"; 
+        overlay.style.top = "65%";
+        overlay.style.width = "180px"; 
+    } else {
+        overlay.style.left = "50%";
+        overlay.style.top = "50%";
+        overlay.style.width = "350px";
+    }
 }
 
 // ----- Start -----
