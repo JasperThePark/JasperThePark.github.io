@@ -13,7 +13,110 @@
   canvas {
     display: block;
   }
+  #leaderboard-overlay {
+    font-family: 'Courier New', Courier, monospace; /* Or a GD font if you have one */
+    border: 5px solid #2e3bcc; 
+    box-shadow: 0 0 20px #2e5bcc;
+    border-radius: 15px;
+    min-width: 300px;
+  }
+
+  #leaderboard li {
+      background: rgb(14, 18, 126);
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+  }
+
+  button {
+      background: #2e3bcc;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+  }
+
+  button:hover {
+      background: #212ca7;
+  }
 </style>
 
-<canvas></canvas>
+<div id="game-container" style="position: relative; width: 800px; height: 600px;">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="leaderboard-overlay" style="
+        display: none; 
+        position: absolute; 
+        top: 50%; left: 50%; 
+        transform: translate(-50%, -50%);
+        background: rgb(26, 31, 172); 
+        color: white; 
+        padding: 20px;
+        border: 4px solid #2e3bcc;
+        text-align: center;
+        font-family: 'Arial', sans-serif;">
+        
+        <h2>TOP PLAYERS</h2>
+        <ul id="leaderboard" style="list-style: none; padding: 0;"></ul>
+        <button onclick="document.getElementById('leaderboard-overlay').style.display='none'">CLOSE</button>
+    </div>
+</div>
 <script src="script.js"></script>
+<script type="module">
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyANgTsLcGTLInt9AjSSVNDbOJ2rNimQw9U",
+    authDomain: "geometry-dash-endless-backend.firebaseapp.com",
+    projectId: "geometry-dash-endless-backend",
+    storageBucket: "geometry-dash-endless-backend.firebasestorage.app",
+    messagingSenderId: "349722599108",
+    appId: "1:349722599108:web:12a05e9f4a18b5af5c3391",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+
+  window.submitScore = async function(playerName, score) {
+
+    if(score === 0) return; 
+
+    try {
+      await addDoc(collection(db, "leaderboard"), {
+        name: playerName,
+        score: Number(score), 
+        timestamp: Date.now()
+      });
+      console.log("Score submitted successfully");
+      window.refreshLeaderboard();
+    } catch (error) {
+      console.error("Error adding score: ", error);
+      alert("Could not save score. Check console.");
+    }
+  }
+
+
+  window.refreshLeaderboard = async function() {
+    const list = document.getElementById("leaderboard");
+    list.innerHTML = "<li>Loading...</li>";
+    
+
+    const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
+    
+    const querySnapshot = await getDocs(q);
+    list.innerHTML = "";
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      list.innerHTML += `<li>${data.name}: ${data.score}</li>`;
+    });
+  }
+</script>
