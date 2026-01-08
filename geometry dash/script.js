@@ -11,6 +11,9 @@ let playerColor = "#ad11dde3"
 let playerShadowColor = 'transparent'
 let playerStroke = 'white'
 let rageDuration = 0
+let last = 0
+let x = 0
+let fontsize = 0
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 let OGragespeed = 1
@@ -18,15 +21,15 @@ let OGrageDuration = 0
 let rageActive = false
 let particles = []
 let ghostActive = false;
-let isGameOver = false; // <<< ADDED: Game state flag
+let isGameOver = false;
 const GHOST_PLAYER_COLOR = "rgba(129, 173, 255, 0.3)";
-let ghostTimer = 0; // Timer in frames (3 seconds * 60 fps = 180)
+let ghostTimer = 0; 
 const GHOST_DURATION = 210;
-const OG_PLAYER_COLOR = "#ad11dde3"; // Store the original color
+const OG_PLAYER_COLOR = "#ad11dde3"; 
 const audioFiles = {
     jump: new Audio('sounds/jump effect.mp3'), 
-    collect: new Audio('sounds/yelloworb.mp3'), //yellow orb
-    collect2: new Audio('sounds/blueorb transform.mp3'),//blue orb collect and also end
+    collect: new Audio('sounds/yelloworb.mp3'), 
+    collect2: new Audio('sounds/blueorb transform.mp3'),
     ghostMode: new Audio('sounds/ghostmode2.mp3'),
     death: new Audio('sounds/death effect.mp3'),
 };
@@ -39,7 +42,7 @@ const audioFiles = {
  */
 function getRotatedVertex(vertex, origin, angle) {
   const angleRad = angle * Math.PI / 180;
-  const [vx, vy] = vertex; // local vertex coords
+  const [vx, vy] = vertex; 
   
   const rotatedX = vx * Math.cos(angleRad) - vy * Math.sin(angleRad);
   const rotatedY = vx * Math.sin(angleRad) + vy * Math.cos(angleRad);
@@ -100,7 +103,7 @@ class Particle {
         this.position = position;
         this.velocity = velocity;
         this.size = 20;
-        this.opacity = 1.0; // Starts opaque
+        this.opacity = 1.0; 
         this.baseColor = color;
     }
     draw() {
@@ -109,13 +112,13 @@ class Particle {
         context.globalAlpha = this.opacity; 
         context.fillStyle = currentRgba;
         
-        // Setting the shadow *before* the fillRect
+
         context.shadowBlur = 10; 
         context.shadowColor = currentRgba; 
 
         context.fillRect(this.position.x, this.position.y, this.size, this.size);
         
-        // context.restore() will reset globalAlpha and the shadow properties
+
         context.restore(); 
     }
 
@@ -144,12 +147,12 @@ class Spike {
   }
 
   draw() {
-    context.save(); // save current canvas state
+    context.save(); 
     context.translate(this.position.x, this.position.y); // move origin to spike position
     context.rotate(this.angle * Math.PI / 180); // convert degrees to radians if needed
 
     context.beginPath();
-    context.moveTo(-25, 32); // relative to translated origin
+    context.moveTo(-25, 32); 
     context.lineTo(25, 32);
     context.lineTo(0, -20);
     context.closePath();
@@ -160,7 +163,7 @@ class Spike {
     context.strokeStyle = "white";
     context.stroke();
 
-    context.restore(); // restore original canvas state
+    context.restore();
   }
   update(delta, speedBoost = 1) {
     this.position.x += this.velocity.x * delta * speedBoost*ragespeed;
@@ -194,7 +197,7 @@ class Block {
 }
 //circle
 class Circle {
-  constructor({ position },lastPiece) {
+  constructor({ position,lastPiece }) {
     this.position = position;
     this.radius = 20;
     this.velocity = { x: -5, y: 0 };
@@ -504,7 +507,25 @@ const levelPieces = {
     { type: "block", offsetX: 312, offsetY: 250, height: 50 },
     { type: "block", offsetX: 364, offsetY: 250, height: 50 },
     { type: "block", offsetX: 416, offsetY: 250, height: 50 },
-    { type: "block", offsetX: 468, offsetY: 250, height: 50 },
+    { type: "block", offsetX: 468, offsetY: 250, height: 50, lastPiece: true  },
+  ],
+  15:[
+    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
+    { type: "spike", offsetX: 52, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 104, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 156, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 208, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 260, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 312, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 364, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 416, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 468, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 520, offsetY: 0, rotation:0},
+    { type: "spike", offsetX: 572, offsetY: 0, rotation:0},
+
+    { type: "block", offsetX: 150, offsetY: 80, height: 50 },
+    { type: "block", offsetX: 300, offsetY: 160, height: 50, lastPiece: true  },
+    {type: 'circle', offsetX: 420, offsetY: 70},
   ],
 };
 function spawnPiece(pieceName, startX) {
@@ -560,7 +581,7 @@ function spawnPiece(pieceName, startX) {
         lastPiece: obj.lastPiece || false
       }));
     }
-    else if (obj.type === "circlew") { // <<< ADDED
+    else if (obj.type === "circlew") { 
       circlesW.push(new CircleW({
         position: { x: startX + obj.offsetX, y: ground.position.y - obj.offsetY },
         lastPiece: obj.lastPiece || false
@@ -635,8 +656,13 @@ function rectTriangleCollision(player, spike) {
 function updateSpawnInterval() {
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 15);
-    spawnPiece(idx, canvas.width + 30);
+
+    x = Math.floor(Math.random()*16)
+    while(x == last){
+      x = Math.floor(Math.random()*16)
+    }
+    last = x
+    spawnPiece(x, canvas.width + 30);
   }, 3000 / ragespeed / speedBoost);
 }
 function rectRectCollision(player, block) {
@@ -706,12 +732,12 @@ addEventListener('touchend',e=>{
     keys.space.pressed = false; 
 })
 
-// ----- Click/Touch Retry Handler (Using pointerup for reliability) -----
+
 function handleInput(e) {
-    // Prevent the browser from scrolling, zooming, or context menus
+
     e.preventDefault(); 
     
-    // Only proceed if the game is over and the retry button is drawn
+
     if (!isGameOver || !retryButton) {
         return; 
     }
@@ -735,16 +761,14 @@ function handleInput(e) {
     if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
         // Crucial: Reset key state before restarting
         keys.space.pressed = false; 
+        document.getElementById('leaderboard-overlay').style.display = 'none';
         restartGame();
     }
 }
 
-// Attach the unified input handler to the canvas for retry
-// 'pointerup' is recommended as it covers both mouse clicks and touch releases reliably.
-canvas.addEventListener("pointerup", handleInput);
-// ... (rest of your code) ...
 
-// ----- Click Retry -----
+canvas.addEventListener("pointerup", handleInput);
+
 function handleInput(e) {
     // Prevent default touch behaviors (like scrolling/zooming)
     e.preventDefault(); // Moved inside to prevent scroll on tap
@@ -769,6 +793,7 @@ function handleInput(e) {
         if (mx >= x && mx <= x + width && my >= y && my <= y + height) {
             // IMPORTANT: Stop the key press that initiated the touch/click
             keys.space.pressed = false; 
+            document.getElementById('leaderboard-overlay').style.display = 'none';
             restartGame();
         }
     } else if (!isGameOver && e.type === 'click') {
@@ -778,13 +803,13 @@ function handleInput(e) {
     }
 }
 
-// ----- Restart -----
+
 function restartGame() {
-  isGameOver = false; // <<< RESET: Game state flag
+  isGameOver = false; 
   player.visible = true; 
   particles = [];      
   updateSpawnInterval()
-  playerColor = OG_PLAYER_COLOR // Use the constant
+  playerColor = OG_PLAYER_COLOR 
   retryButton = null;
   spikes = [];
   bgcolor = "#04006B";
@@ -802,11 +827,17 @@ function restartGame() {
   player.position = { x: canvas.width / 4, y: ground.position.y - 40 };
   player.velocity = { x: 0, y: 0 };
   player.rotation = 0;
+  x = 0
+  last = 0
   score = 0
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    let idx = Math.floor(Math.random() * 15)
-    spawnPiece(Math.floor(idx), canvas.width + 30);
+    x = Math.floor(Math.random()*16)
+    while(x == last){
+      x = Math.floor(Math.random()*16)
+    }
+    last = x
+    spawnPiece(Math.floor(x), canvas.width + 30);
     
   }, 3000/ragespeed/speedBoost);
 
@@ -816,8 +847,14 @@ function restartGame() {
 
 // ----- Start Spawning -----
 intervalId = setInterval(() => {
-  let idx = Math.floor(Math.random() * 15)
-  spawnPiece(Math.floor(idx), canvas.width + 30);
+  x = Math.floor(Math.random()*16)
+  
+  while(x == last){
+    x = Math.floor(Math.random()*16)
+  }
+  last = x
+
+  spawnPiece(Math.floor(x), canvas.width + 30);
 }, 3000/ragespeed/speedBoost);
 
 // ----- Animation -----
@@ -843,8 +880,14 @@ function animate(currentTime) {
     if (particles.length === 0 && player.visible === false) { 
       // A more robust check: ensure all death particles have faded/left
       gameOverScreen();
-      console.log('shutting off animations');
       cancelAnimationFrame(currentAnimationId);
+
+      const playerName = prompt("Game Over! Enter your name:");
+      if (playerName) {
+          window.submitScore(playerName, score);
+      } else {
+          window.refreshLeaderboard();
+      }
       return;
     } else if (particles.length > 0) {
       // Keep running the animation loop until all particles are gone.
@@ -866,17 +909,21 @@ function animate(currentTime) {
   context.fillRect(0, 0, canvas.width, canvas.height);
   ground.draw();
   
-  player.update(delta); // This now only updates physics
+  player.update(delta); 
     
   //score
-  context.font = "bold 25px sans-serif";
-  context.fillStyle = "white";
-  context.fillText(`Score: ${score}`, 25, 25);
+  let fontSize = window.innerWidth < 600 ? 50 : 25; 
+  context.font = `bold ${fontSize}px sans-serif`;
+  context.fillStyle = "white";
+  context.textAlign = "left"; 
+
+  context.fillText(`Score: ${score}`, 20, fontSize + 10);
+    
 
   player.velocity.y += 0.8 * delta;
   onSomething = false;
   
-  //particles - UPDATED AND DRAWN HERE
+  //particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const particle = particles[i];
     particle.update(delta);
@@ -931,8 +978,15 @@ function animate(currentTime) {
         circles.splice(i, 1);
         
       }
-
-      if (circle.position.x + circle.radius < 0) circles.splice(i, 1);
+      if ((circle.position.x + 20)/ 2 < 0 && circle.lastPiece==true){
+        circles.splice(i, 1);
+        score+=1
+        console.log('circle spliced and point added')
+      } 
+      else if ((circle.position.x + 20) / 2 < 0){
+        console.log('circle spliced')
+        circles.splice(i, 1);
+      }
     }
   }
   //circles Blue (Ghost Mode)
@@ -967,7 +1021,7 @@ function animate(currentTime) {
       circle.update(delta, speedBoost);
 
       if (rectCircleCollision(player, circle)) {
-        // WEAKER JUMP BOOST
+        // WEAKER SPPEd BOOST
         audioFiles.collect.currentTime = 0; 
         audioFiles.collect.play().catch(e => console.error("Collect audio failed:", e));
         
@@ -1087,26 +1141,43 @@ function animate(currentTime) {
 }
 // ----- Game Over -----
 function gameOverScreen() {
-  context.font = "bold 100px sans-serif";
-  context.fillStyle = "white";
-  context.fillText("Game Over", canvas.width / 3, canvas.height / 2 - 100);
+    let titleSize = window.innerWidth < 600 ? 50 : 100;
+    context.font = `bold ${titleSize}px sans-serif`;
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 150);
 
-  const w = 300, h = 100;
-  const x = canvas.width / 2 - w / 2;
-  const y = canvas.height / 2;
+    const w = 150, h=60
+    let buttonX;
+    
+    if (window.innerWidth < 600) {
+        buttonX = canvas.width / 2 - w - 10;//left on mobile
+    } else {
+        buttonX = canvas.width / 2 - w / 2;//center for laptop or bigger
+    }
+    
+    const buttonY = canvas.height / 2 - 150+titleSize;
 
-  context.fillStyle = "#222";
-  context.fillRect(x, y, w, h);
-  context.strokeStyle = "white";
-  context.lineWidth = 1;
-  context.strokeRect(x, y, w, h);
+    context.fillStyle = "#2e3bcc";
+    context.fillRect(buttonX, buttonY, w, h);
+    context.font = "bold 20px sans-serif";
+    context.fillStyle = "white";
+    context.fillText("Retry", buttonX + w / 2, buttonY + 38);
 
-  context.font = "bold 50px sans-serif";
-  context.fillStyle = "white";
-  context.fillText("Retry", x + 75, y + 65);
+    retryButton = { x: buttonX, y: buttonY, width: w, height:h };
 
-  retryButton = { x, y, width: w, height: h };
-  
+    const overlay = document.getElementById('leaderboard-overlay');
+    overlay.style.display = 'block';
+    
+    if (window.innerWidth < 600) {
+        overlay.style.left = "70%"; 
+        overlay.style.top = "65%";
+        overlay.style.width = "180px"; 
+    } else {
+        overlay.style.left = "50%";
+        overlay.style.top = "50%";
+        overlay.style.width = "350px";
+    }
 }
 
 // ----- Start -----
