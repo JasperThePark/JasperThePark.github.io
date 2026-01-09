@@ -365,9 +365,7 @@ const levelPieces = {
     { type: "spike", offsetX: 104, offsetY: 0},
     { type: "spike", offsetX: 156, offsetY: 0},
     { type: "block", offsetX: 170, offsetY: 120, height: 50 },
-    { type: "spike", offsetX: 208, offsetY: 0},
-    { type: "spike", offsetX: 260, offsetY: 0},
-    { type: "spike", offsetX: 312, offsetY: 0,lastPiece:true},
+    { type: "spike", offsetX: 208, offsetY: 0,lastPiece:true},
     {type: 'circle', offsetX:321,offsetY:250},
   ],
   9: [
