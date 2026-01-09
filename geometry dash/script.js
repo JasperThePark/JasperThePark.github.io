@@ -524,26 +524,8 @@ const levelPieces = {
     { type: "spike", offsetX: 572, offsetY: 0, rotation:0},
 
     { type: "block", offsetX: 150, offsetY: 80, height: 50 },
-    { type: "block", offsetX: 300, offsetY: 160, height: 50, lastPiece: true  },
-    {type: 'circle', offsetX: 420, offsetY: 70},
-  ],
-  15:[
-    { type: "block", offsetX: 0, offsetY: 0, height: 50 },
-    { type: "spike", offsetX: 52, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 104, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 156, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 208, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 260, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 312, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 364, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 416, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 468, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 520, offsetY: 0, rotation:0},
-    { type: "spike", offsetX: 572, offsetY: 0, rotation:0},
-
-    { type: "block", offsetX: 150, offsetY: 80, height: 50 },
     { type: "block", offsetX: 300, offsetY: 160, height: 50 },
-    {type: 'circle', offsetX: 420, offsetY: 70},
+    {type: 'circle', offsetX: 420, offsetY: 70, lastPiece: true},
   ],
 };
 function spawnPiece(pieceName, startX) {
