@@ -1,0 +1,72 @@
+<header>
+  <title>Rat</title>
+  <link rel="shortcut icon" type="image/x-icon" href="cheese_logo-removebg-preview.png" />
+</header>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    background-color: black; /* Match your game theme */
+  }
+
+  #game-container {
+    display: flex;       /* Put canvas and sidebar side-by-side */
+    flex-direction: row;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  canvas {
+    /* This forces the canvas to shrink to fit the screen */
+    max-width: 100%;
+    max-height: 100%;
+      
+    /* This ensures the image doesn't get stretched or squished */
+    object-fit: contain; 
+  }
+
+  #ui-layer {
+    position: absolute;  /* Lock to the container */
+    bottom: 20px;        /* Distance from bottom */
+    right: 20px;         /* Distance from right */
+    text-align: right;   /* Align text to the right */
+    font-family: 'Courier New', Courier, monospace; /* Arcade feel */
+    pointer-events: none; /* Make sure clicks go through to the game */
+  }
+
+  .stat-label {
+    color: white;
+    font-size: 24px;
+    margin: 5px 0;
+    text-transform: uppercase;
+  }
+  #lives{
+    display:flex;
+    gap:10px;
+    justify-content: end;
+    margin-top: 5%;
+  }
+  .life-icon{
+    width:20px;
+    height:20px;
+    background-color: yellow;
+    border-radius: 50%;
+    clip-path: polygon(100% 0%, 100% 20%, 50% 50%, 100% 80%, 100% 100%, 0% 100%, 0% 0%);
+    transform:rotate(0deg);
+  }
+  #points { color: yellow; } /* Make points stand out! */
+</style>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui-layer">
+        <div id="levels" class="stat-label">Level: 0</div>
+        <div id="lives" class="stat-label">Lives: </div>
+        <div id='points' class="stat-label">Points: 0</div>
+    </div>
+</div>
+<script src="script.js"></script>
