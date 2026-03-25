@@ -25,6 +25,7 @@ let blocksize = 36
 console.log((canvas.width/4*3)/2-blocksize*4.5)
 console.log(blocksize/2)
 let grid = []
+let isResetting = false;
 let blinkymode = 'scatter'
 let blinkyscattercount = 0
 let blinkylastmodechange = 0
@@ -470,7 +471,7 @@ class pacMan {
         this.tailFrame = 0
     }
     draw() {
-        if(blinkymode!=='run' && !blinkytimer){
+        if((blinkymode!=='run' && !blinkytimer)&&(blinkymode!=='run' && !blinkytimer)){
             context.save();
             context.translate(this.position.x, this.position.y);
 
@@ -720,314 +721,346 @@ function rectCircleCollision(player, circle) {
         circleTop < playerBottom
     );
 }
-console.log(grid)
-function animate() {
-    if(blinkytimer>0){
-        console.log(ghostgrid[2][15])
-        blinkytimer+=1
-        if(blinkytimer>200){
-            blinkytimer = 0
-            ghostgrid[2][15] = '0'
-            blinkyrunninghome = false
-        }
-        
-    }
-    if(blinkymode=='run'){
-        red.scared = true
-    }else{
-        red.scared = false
-    }
-    if(blinkymode=='chase' && blinkyscattercount<4 && !blinkyrunninghome){
-        if(blinkylastmodechange>=480){
-            if(Math.random()>0.35){
-                console.log('scatter')
-                blinkymode = 'scatter'
-                blinkyscattercount+=1
-            }
-            blinkylastmodechange = 0
-        }
-        blinkylastmodechange+=1
-    }
-    if(blinkymode=='run'){
-        if(blinkyrunningtime>=540){
-            blinkymode = 'chase'
-            blinkyrunningtime = 0
-        }
-        blinkyrunningtime+=1
-    }
+let lastTime = 0;
+const targetFPS = 60;
+const fpsInterval = 1000 / targetFPS; // ~16.66ms
 
-
-
-    if(winkytimer>0){
-        console.log(winkygrid[2][15])
-        winkytimer+=1
-        if(winkytimer>200){
-            winkytimer = 0
-            winkygrid[2][15] = '0'
-            winkyrunninghome = false
-        }
-        
-    }
-    if(winkymode=='run'){
-        winky.scared = true
-    }else{
-        winky.scared = false
-    }
-    if(winkymode=='chase' && winkyscattercount<4 && !winkyrunninghome){
-        if(winkylastmodechange>=480){
-            if(Math.random()>0.35){
-                console.log('scatter')
-                winkymode = 'scatter'
-                winkyscattercount+=1
-            }
-            winkylastmodechange = 0
-        }
-        winkylastmodechange+=1
-    }
-    if(winkymode=='run'){
-        if(winkyrunningtime>=540){
-            winkymode = 'chase'
-            winkyrunningtime = 0
-        }
-        winkyrunningtime+=1
-    }
-
+function animate(currentTime) {
+    // 1. Always request the next frame immediately
     id = requestAnimationFrame(animate);
-    document.getElementById('points').innerText = `Points: ${score}`
-    document.getElementById('levels').innerText = `Level: ${currentLevel}`
-    updateLivesUI()
-    context.fillStyle = bgcolor
-    context.fillRect(0, 0, canvas.width, canvas.height)
-    for (let i = wallsarr.length - 1; i >= 0; i--) {
-        wallsarr[i].draw()
+
+    // 2. Set the initial time on the very first frame
+    if (!lastTime) {
+        lastTime = currentTime;
+        return; 
     }
-    for (let i = steroidsarr.length - 1; i >= 0; i--) {
-        if (circleCollision(player, steroidsarr[i])) {
-            score += 10;
-            pacmanspeed = 1
-            steroidsarr.splice(i, 1);
-        } else {
-            steroidsarr[i].draw();
+
+    // 3. Calculate time passed
+    const deltaTime = currentTime - lastTime;
+
+    // 4. ONLY run the game logic if enough time has passed!
+    if (deltaTime >= fpsInterval) {
+        // Adjust lastTime, but keep the remainder to prevent "drift"
+        lastTime = currentTime - (deltaTime % fpsInterval);
+        
+        if(blinkytimer>0){
+            console.log(ghostgrid[2][15])
+            blinkytimer+=1
+            if(blinkytimer>200){
+                blinkytimer = 0
+                ghostgrid[2][15] = '0'
+                blinkyrunninghome = false
+            }
+            
         }
-    }
-    
-    for(let i=0;i<steroids2arr.length;i++){
-        if (false==circleCollision(player,steroids2arr[i])){
-            steroids2arr[i].draw()
+        if(blinkymode=='run'){
+            red.scared = true
         }else{
-            score+=500
-            if(!blinkyrunninghome && blinkytimer==0){
-                blinkymode = 'run'
+            red.scared = false
+        }
+        if(blinkymode=='chase' && blinkyscattercount<4 && !blinkyrunninghome){
+            if(blinkylastmodechange>=480){
+                if(Math.random()>0.35){
+                    console.log('scatter')
+                    blinkymode = 'scatter'
+                    blinkyscattercount+=1
+                }
+                blinkylastmodechange = 0
+            }
+            blinkylastmodechange+=1
+        }
+        if(blinkymode=='run'){
+            if(blinkyrunningtime>=540){
+                blinkymode = 'chase'
                 blinkyrunningtime = 0
-                console.log('collected')
             }
-            if(!winkyrunninghome && winkytimer==0){
-                winkymode = 'run'
+            blinkyrunningtime+=1
+        }
+
+
+
+        if(winkytimer>0){
+            console.log(winkygrid[2][15])
+            winkytimer+=1
+            if(winkytimer>200){
+                winkytimer = 0
+                winkygrid[2][15] = '0'
+                winkyrunninghome = false
+            }
+            
+        }
+        if(winkymode=='run'){
+            winky.scared = true
+        }else{
+            winky.scared = false
+        }
+        if(winkymode=='chase' && winkyscattercount<4 && !winkyrunninghome){
+            if(winkylastmodechange>=480){
+                if(Math.random()>0.35){
+                    console.log('scatter')
+                    winkymode = 'scatter'
+                    winkyscattercount+=1
+                }
+                winkylastmodechange = 0
+            }
+            winkylastmodechange+=1
+        }
+        if(winkymode=='run'){
+            if(winkyrunningtime>=540){
+                winkymode = 'chase'
                 winkyrunningtime = 0
-                console.log('collected')
             }
-
-            steroids2arr.splice(i,1)
+            winkyrunningtime+=1
         }
-    }
 
-    // 1. TURNING LOGIC (Check if we CAN turn)
-    let canTurn = true;
-    const desiredPacman = {
-        position: {
-            x: player.position.x + desiredVelocity.x,
-            y: player.position.y + desiredVelocity.y
-        },
-        radius: player.radius
-    };
-
-    for (let i = 0; i < wallsarr.length; i++) {
-        if (rectCircleCollision(wallsarr[i], desiredPacman)) {
-            canTurn = false;
-            break;
+        document.getElementById('points').innerText = `Points: ${score}`
+        document.getElementById('levels').innerText = `Level: ${currentLevel}`
+        updateLivesUI()
+        context.fillStyle = bgcolor
+        context.fillRect(0, 0, canvas.width, canvas.height)
+        for (let i = wallsarr.length - 1; i >= 0; i--) {
+            wallsarr[i].draw()
         }
-    }
+        for (let i = steroidsarr.length - 1; i >= 0; i--) {
+            if (circleCollision(player, steroidsarr[i])) {
+                score += 10;
+                pacmanspeed = 1
+                steroidsarr.splice(i, 1);
+            } else {
+                steroidsarr[i].draw();
+            }
+        }
+        
+        for(let i=0;i<steroids2arr.length;i++){
+            if (false==circleCollision(player,steroids2arr[i])){
+                steroids2arr[i].draw()
+            }else{
+                score+=500
+                if(!blinkyrunninghome && blinkytimer==0){
+                    blinkymode = 'run'
+                    blinkyrunningtime = 0
+                    console.log('collected')
+                }
+                if(!winkyrunninghome && winkytimer==0){
+                    winkymode = 'run'
+                    winkyrunningtime = 0
+                    console.log('collected')
+                }
 
-    if (canTurn && (desiredVelocity.x !== 0 || desiredVelocity.y !== 0)) {
-        player.velocity = desiredVelocity;
-        // Update angles for drawing
-        if (player.velocity.x > 0) player.angle = 0;
-        if (player.velocity.x < 0) player.angle = Math.PI;
-        if (player.velocity.y > 0) player.angle = Math.PI / 2;
-        if (player.velocity.y < 0) player.angle = -Math.PI / 2;
-    }
+                steroids2arr.splice(i,1)
+            }
+        }
 
-    // 2. PAC-MAN COLLISION & SNAPPING (Combined into one loop)
-    for (let i = 0; i < wallsarr.length; i++) {
-        const futurePacman = {
+        // 1. TURNING LOGIC (Check if we CAN turn)
+        let canTurn = true;
+        const desiredPacman = {
             position: {
-                x: player.position.x + player.velocity.x * pacmanspeed,
-                y: player.position.y + player.velocity.y * pacmanspeed
+                x: player.position.x + desiredVelocity.x,
+                y: player.position.y + desiredVelocity.y
             },
             radius: player.radius
         };
 
-        if (rectCircleCollision(wallsarr[i], futurePacman)) {
-            collisionDetected = true;
-
-            // SNAP TO EDGE: This clears the "stuck" pixels so turning works next frame
-            if (player.velocity.x > 0) {
-                player.position.x = wallsarr[i].position.x - (wallsarr[i].width / 2) - player.radius;
-            } else if (player.velocity.x < 0) {
-                player.position.x = wallsarr[i].position.x + (wallsarr[i].width / 2) + player.radius;
+        for (let i = 0; i < wallsarr.length; i++) {
+            if (rectCircleCollision(wallsarr[i], desiredPacman)) {
+                canTurn = false;
+                break;
             }
-
-            if (player.velocity.y > 0) {
-                player.position.y = wallsarr[i].position.y - (wallsarr[i].height / 2) - player.radius;
-            } else if (player.velocity.y < 0) {
-                player.position.y = wallsarr[i].position.y + (wallsarr[i].height / 2) + player.radius;
-            }
-
-            player.velocity = { x: 0, y: 0 };
-            break; 
         }
-    }
 
-    if (Math.abs(red.position.x % blocksize - blocksize / 2) < 2 && 
-        Math.abs(red.position.y % blocksize - blocksize / 2) < 2) {
-        
-        // 1. Precise Snapping
-        const gGridX = Math.round((red.position.x - blocksize / 2) / blocksize);
-        const gGridY = Math.round((red.position.y - blocksize / 2) / blocksize);
-        const pGridX = Math.round((player.position.x - blocksize / 2) / blocksize);
-        const pGridY = Math.round((player.position.y - blocksize / 2) / blocksize);
+        if (canTurn && (desiredVelocity.x !== 0 || desiredVelocity.y !== 0)) {
+            player.velocity = desiredVelocity;
+            // Update angles for drawing
+            if (player.velocity.x > 0) player.angle = 0;
+            if (player.velocity.x < 0) player.angle = Math.PI;
+            if (player.velocity.y > 0) player.angle = Math.PI / 2;
+            if (player.velocity.y < 0) player.angle = -Math.PI / 2;
+        }
 
-        red.position.x = gGridX * blocksize + blocksize / 2;
-        red.position.y = gGridY * blocksize + blocksize / 2;
+        // 2. PAC-MAN COLLISION & SNAPPING (Combined into one loop)
+        for (let i = 0; i < wallsarr.length; i++) {
+            const futurePacman = {
+                position: {
+                    x: player.position.x + player.velocity.x * pacmanspeed,
+                    y: player.position.y + player.velocity.y * pacmanspeed
+                },
+                radius: player.radius
+            };
 
-        // 2. Get the BFS direction
-        const nextMove = getNextblinkyMove(gGridX, gGridY, pGridX, pGridY, ghostgrid);
-        blinkylastmove = nextMove
-        // 3. Set velocity based on speed (using 2 for smoothness)
-        let ghostSpeed = 3.5;
-        red.velocity.x = nextMove.x * ghostSpeed;
-        red.velocity.y = nextMove.y * ghostSpeed;
-    }
-    if (Math.abs(winky.position.x % blocksize - blocksize / 2) < 2 && 
-        Math.abs(winky.position.y % blocksize - blocksize / 2) < 2) {
-        
-        // 1. Precise Snapping
-        const gGridX = Math.round((winky.position.x - blocksize / 2) / blocksize);
-        const gGridY = Math.round((winky.position.y - blocksize / 2) / blocksize);
-        const pGridX = Math.round((player.position.x - blocksize / 2) / blocksize);
-        const pGridY = Math.round((player.position.y - blocksize / 2) / blocksize);
+            if (rectCircleCollision(wallsarr[i], futurePacman)) {
 
-        winky.position.x = gGridX * blocksize + blocksize / 2;
-        winky.position.y = gGridY * blocksize + blocksize / 2;
+                // SNAP TO EDGE: This clears the "stuck" pixels so turning works next frame
+                if (player.velocity.x > 0) {
+                    player.position.x = wallsarr[i].position.x - (wallsarr[i].width / 2) - player.radius;
+                } else if (player.velocity.x < 0) {
+                    player.position.x = wallsarr[i].position.x + (wallsarr[i].width / 2) + player.radius;
+                }
 
-        // 2. Get the BFS direction
-        const nextMove = getNextwinkyMove(gGridX, gGridY, pGridX, pGridY, winkygrid);
-        winkylastmove = nextMove
-        // 3. Set velocity based on speed (using 2 for smoothness)
-        let ghostSpeed = 2.8;
-        winky.velocity.x = nextMove.x * ghostSpeed;
-        winky.velocity.y = nextMove.y * ghostSpeed;
-    }
+                if (player.velocity.y > 0) {
+                    player.position.y = wallsarr[i].position.y - (wallsarr[i].height / 2) - player.radius;
+                } else if (player.velocity.y < 0) {
+                    player.position.y = wallsarr[i].position.y + (wallsarr[i].height / 2) + player.radius;
+                }
 
+                player.velocity = { x: 0, y: 0 };
+                break; 
+            }
+        }
 
-    if (circleCollision(player, red)) {
-        if(blinkymode!='run'){
-            console.log(blinkymode)
-            playerLives -= 1;
-            updateLivesUI()
-
-            if (playerLives <= 0) {
-                // Quick and dirty Game Over
-                alert("Game Over! Final Score: " + score);
-                cancelAnimationFrame(id)
-            } else {
-                cancelAnimationFrame(id)
-                setTimeout(() => {
-                    
-                    // Reset positions here so the player sees them jump back
-                    player.position.x = blocksize - 16;
-                    player.position.y = canvas.height / 2 - 8;
-                    player.velocity = { x: 0, y: 0 };
-                    desiredVelocity = { x: 0, y: 0 };
-                    
-                    // Reset Blinky's position
-                    red.position.x = 12 * blocksize + blocksize / 2;
-                    red.position.y = 1 * blocksize + blocksize / 2;
-                    
-                    // Give the player a tiny breather before the ghost attacks again
-                    blinkymode = 'scatter';
-                    blinkyscattercount = 0;
-                    blinkylastmodechange = 0;
-
-                    winky.position.x = 19 * blocksize + blocksize / 2;
-                    winky.position.y = 1 * blocksize + blocksize / 2;
-                    
-                    // Give the player a tiny breather before the ghost attacks again
-                    winkymode = 'scatter';
-                    winkyscattercount = 0;
-                    winkylastmodechange = 0;
-                    player.angle = 0
-                    id = requestAnimationFrame(animate);
-                }, 2500);
-
+        if (Math.abs(red.position.x % blocksize - blocksize / 2) < 2 && 
+            Math.abs(red.position.y % blocksize - blocksize / 2) < 2) {
             
-            }
-        }else{
-            blinkyrunninghome = true
-            console.log('ghost goes back to home')
+            // 1. Precise Snapping
+            const gGridX = Math.round((red.position.x - blocksize / 2) / blocksize);
+            const gGridY = Math.round((red.position.y - blocksize / 2) / blocksize);
+            const pGridX = Math.round((player.position.x - blocksize / 2) / blocksize);
+            const pGridY = Math.round((player.position.y - blocksize / 2) / blocksize);
+
+            red.position.x = gGridX * blocksize + blocksize / 2;
+            red.position.y = gGridY * blocksize + blocksize / 2;
+
+            // 2. Get the BFS direction
+            const nextMove = getNextblinkyMove(gGridX, gGridY, pGridX, pGridY, ghostgrid);
+            blinkylastmove = nextMove
+            // 3. Set velocity based on speed (using 2 for smoothness)
+            let ghostSpeed = 3.5;
+            red.velocity.x = nextMove.x * ghostSpeed;
+            red.velocity.y = nextMove.y * ghostSpeed;
         }
-        
-    }
-    if (circleCollision(player, winky)) {
-        if(winkymode!='run'){
-            console.log(winkymode)
-            playerLives -= 1;
-            updateLivesUI()
-
-            if (playerLives <= 0) {
-                // Quick and dirty Game Over
-                alert("Game Over! Final Score: " + score);
-                cancelAnimationFrame(id)
-            } else {
-                cancelAnimationFrame(id)
-                setTimeout(() => {
-                    
-                    // Reset positions here so the player sees them jump back
-                    player.position.x = blocksize - 16;
-                    player.position.y = canvas.height / 2 - 8;
-                    player.velocity = { x: 0, y: 0 };
-                    desiredVelocity = { x: 0, y: 0 };
-                    
-                    red.position.x = 12 * blocksize + blocksize / 2;
-                    red.position.y = 1 * blocksize + blocksize / 2;
-                    
-                    // Give the player a tiny breather before the ghost attacks again
-                    blinkymode = 'scatter';
-                    blinkyscattercount = 0;
-                    blinkylastmodechange = 0;
-
-                    winky.position.x = 19 * blocksize + blocksize / 2;
-                    winky.position.y = 1 * blocksize + blocksize / 2;
-                    
-                    // Give the player a tiny breather before the ghost attacks again
-                    winkymode = 'scatter';
-                    winkyscattercount = 0;
-                    winkylastmodechange = 0;
-                    player.angle = 0
-                    id = requestAnimationFrame(animate);
-                }, 2500);
-
+        if (Math.abs(winky.position.x % blocksize - blocksize / 2) < 2 && 
+            Math.abs(winky.position.y % blocksize - blocksize / 2) < 2) {
             
-            }
-        }else{
-            winkyrunninghome = true
-            console.log('ghost goes back to home')
+            // 1. Precise Snapping
+            const gGridX = Math.round((winky.position.x - blocksize / 2) / blocksize);
+            const gGridY = Math.round((winky.position.y - blocksize / 2) / blocksize);
+            const pGridX = Math.round((player.position.x - blocksize / 2) / blocksize);
+            const pGridY = Math.round((player.position.y - blocksize / 2) / blocksize);
+
+            winky.position.x = gGridX * blocksize + blocksize / 2;
+            winky.position.y = gGridY * blocksize + blocksize / 2;
+
+            // 2. Get the BFS direction
+            const nextMove = getNextwinkyMove(gGridX, gGridY, pGridX, pGridY, winkygrid);
+            winkylastmove = nextMove
+            // 3. Set velocity based on speed (using 2 for smoothness)
+            let ghostSpeed = 2.8;
+            winky.velocity.x = nextMove.x * ghostSpeed;
+            winky.velocity.y = nextMove.y * ghostSpeed;
         }
-        
+
+
+        if (circleCollision(player, red)) {
+            if(blinkymode!='run' &&!isResetting){
+                isResetting = true
+                console.log(blinkymode)
+                playerLives -= 1;
+                updateLivesUI()
+
+                if (playerLives <= 0) {
+                    alert("Game Over! Final Score: " + score);
+                    cancelAnimationFrame(id)
+                } else {
+                    cancelAnimationFrame(id)
+                    setTimeout(() => {
+                        
+                        // Reset positions here so the player sees them jump back
+                        player.position.x = blocksize - 16;
+                        player.position.y = canvas.height / 2 - 8;
+                        player.velocity = { x: 0, y: 0 };
+                        desiredVelocity = { x: 0, y: 0 };
+                        
+                        // Reset Blinky's position
+                        red.position.x = 12 * blocksize + blocksize / 2;
+                        red.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        blinkymode = 'scatter';
+                        blinkyscattercount = 0;
+                        blinkylastmodechange = 0;
+
+                        winky.position.x = 19 * blocksize + blocksize / 2;
+                        winky.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        winkymode = 'scatter';
+                        winkyscattercount = 0;
+                        winkylastmodechange = 0;
+                        player.angle = 0
+                        lastTime = performance.now(); 
+                        blinkytimer = 0;
+                        winkytimer = 0;
+                        blinkyrunninghome = false;
+                        winkyrunninghome = false;
+                        isResetting = false; // Unlock the game!
+                        id = requestAnimationFrame(animate);
+                    }, 2500);
+                    
+                
+                }
+            }else{
+                blinkyrunninghome = true
+                console.log('ghost goes back to home')
+            }
+            
+        }
+        if (circleCollision(player, winky)) {
+            if(winkymode!='run'&&!isResetting){
+                isResetting = true
+                console.log(winkymode)
+                playerLives -= 1;
+                updateLivesUI()
+
+                if (playerLives <= 0) {
+                    alert("Game Over! Final Score: " + score);
+                    cancelAnimationFrame(id)
+                } else {
+                    cancelAnimationFrame(id)
+                    setTimeout(() => {
+                        
+                        // Reset positions here so the player sees them jump back
+                        player.position.x = blocksize - 16;
+                        player.position.y = canvas.height / 2 - 8;
+                        player.velocity = { x: 0, y: 0 };
+                        desiredVelocity = { x: 0, y: 0 };
+                        
+                        red.position.x = 12 * blocksize + blocksize / 2;
+                        red.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        blinkymode = 'scatter';
+                        blinkyscattercount = 0;
+                        blinkylastmodechange = 0;
+
+                        winky.position.x = 19 * blocksize + blocksize / 2;
+                        winky.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        winkymode = 'scatter';
+                        winkyscattercount = 0;
+                        winkylastmodechange = 0;
+                        player.angle = 0
+                        lastTime = performance.now(); 
+                        isResetting = false; // Unlock the game!
+                        blinkytimer = 0;
+                        winkytimer = 0;
+                        blinkyrunninghome = false;
+                        winkyrunninghome = false;
+                        id = requestAnimationFrame(animate);
+                        
+                    }, 2500);
+
+                
+                }
+            }else{
+                winkyrunninghome = true
+                console.log('ghost goes back to home')
+            }
+            
+        }
+        player.update();
+        winky.update()
+        red.update();
     }
-    player.update();
-    winky.update()
-    red.update();
 }
 
 animate()
@@ -1149,7 +1182,38 @@ function getNextblinkyMove(startX, startY, targetX, targetY, mapArray) {
     
 }
 function getNextwinkyMove(startX, startY, targetX, targetY, mapArray) {
-    // Scatter Mode logic
+    let dirX = 0;
+    let dirY = 0;
+
+    if (player.velocity.x > 0) dirX = 1;
+    else if (player.velocity.x < 0) dirX = -1;
+    else if (player.velocity.y > 0) dirY = 1;
+    else if (player.velocity.y < 0) dirY = -1;
+
+    // Start from player's grid position
+    let tx = targetX;
+    let ty = targetY;
+
+    // Move up to 4 tiles ahead, stopping at walls
+    for (let i = 0; i < 4; i++) {
+        let nx = tx + dirX;
+        let ny = ty + dirY;
+
+        // Bounds check
+        if (nx < 0 || nx >= mapArray[0].length || ny < 0 || ny >= mapArray.length) break;
+
+        // Stop if wall
+        if (mapArray[ny][nx] === '1') break;
+
+        tx = nx;
+        ty = ny;
+    }
+
+    // Final target
+    targetX = tx;
+    targetY = ty;
+
+    
     if(winkymode=='run' && !winkyrunninghome){
         const directions = [
             { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
@@ -1184,7 +1248,7 @@ function getNextwinkyMove(startX, startY, targetX, targetY, mapArray) {
             targetX = 1;
             targetY = 1;
         }
-        if(winkyrunninghome){
+        else if(winkyrunninghome){
             targetX = winkyhome.x
             targetY = winkyhome.y 
         }
