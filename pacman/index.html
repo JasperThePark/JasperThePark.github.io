@@ -1,6 +1,7 @@
 <header>
   <title>Rat</title>
   <link rel="shortcut icon" type="image/x-icon" href="cheese.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 </header>
 <style>
   html, body {
@@ -49,15 +50,75 @@
     justify-content: end;
     margin-top: 5%;
   }
+  .icon-wrapper {
+    position: relative; 
+    width: 20px;
+    height: 20px;
+    margin-top: 10px; /* Gives a little breathing room for the ears */
+  }
+  .icon-wrapper div {
+    position: absolute;
+    border-radius: 50%;
+  }
   .life-icon{
     width:20px;
     height:20px;
-    background-color: yellow;
+    background-color: gray;
     border-radius: 50%;
-    clip-path: polygon(100% 0%, 100% 20%, 50% 50%, 100% 80%, 100% 100%, 0% 100%, 0% 0%);
-    transform:rotate(0deg);
+    position: relative;
   }
-  #points { color: yellow; } /* Make points stand out! */
+  .life-icon {
+  width: 20px; height: 20px;
+  background-color: gray;
+  top: 0; left: 0;
+}
+.leftmouseears {
+  width: 13px; height: 13px;
+  background-color: gray;
+  top: -5px; left: -6px;
+}
+.rightmouseears {
+  width: 13px; height: 13px;
+  background-color: gray;
+  top: -5px; right: -6px;
+}
+.leftmouseearsin {
+  width: 8px; height: 8px;
+  background-color: pink;
+  top: -2px; left: -3px;
+  z-index: 1; /* Keeps inner ear on top */
+}
+.rightmouseearsin {
+  width: 8px; height: 8px;
+  background-color: pink;
+  top: -2px; right: -3px;
+  z-index: 1;
+}
+.mouseeyeleft {
+  width: 8px; height: 8px;
+  background-color: white;
+  top: 4px; left: 1px;
+}
+.mouseeyeright {
+  width: 8px; height: 8px;
+  background-color: white;
+  top: 4px; right: 1px;
+}
+.mouseeyeleftin {
+  width: 5px; height: 5px;
+  background-color: black;
+  top: 4px; left: -0.5px;
+  z-index: 2; /* Keeps pupil on top */
+}
+.mouseeyerightin {
+  width: 5px; height: 5px;
+  background-color: black;
+  top: 4px; right: 3.5px;
+  z-index: 2;
+}
+  
+  #points { 
+    color: yellow; } /* Make points stand out! */
 </style>
 
 <div id="game-container">

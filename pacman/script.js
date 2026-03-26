@@ -2,6 +2,7 @@ const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
 canvas.width = 1528
+let texts = []
 canvas.height = 698
 console.log(canvas.width,canvas.height)
 let w = false
@@ -9,6 +10,7 @@ let a = false
 let s = false
 let d = false
 let score = 0
+let texttimer = 0
 let steroidsarr = []
 let steroids2arr = []
 let wallsarr = []
@@ -129,6 +131,32 @@ winkygrid = JSON.parse(JSON.stringify(maps2[0]));
         context.restore();
     }
     */
+class FloatingText {
+    constructor({ x, y, text }) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.alpha = 1;        // opacity (1 = full, 0 = invisible)
+        this.life = targetFPS;        // frames (60 ≈ 1 second at 60 FPS)
+    }
+
+    draw() {
+        context.save();
+        context.globalAlpha = this.alpha;
+        context.fillStyle = "white";
+        context.font = "25px Anton";
+        context.fillText(this.text, this.x, this.y);
+        context.restore();
+    }
+
+    update() {
+        this.life -= 1;
+        this.alpha = Math.max(0, this.life / targetFPS); 
+        this.x-=0.5
+        this.y-=0.5
+        this.draw();
+    }
+}
 class ghost {
     //color = head color 2 = tail,ears,nose,mouth color3 = pupils color4 = eyes, color5 = muzzle color6 = inner ears color 7 = outer ears
     constructor({ name='blinky',position, velocity, color = 'yellow',color2 ='orange',color3 ='black',color4 = 'white',color5 ='#FFE066',color6 = '#ffd61d',color7 = 'orange' }) {
@@ -471,7 +499,7 @@ class pacMan {
         this.tailFrame = 0
     }
     draw() {
-        if((blinkymode!=='run' && !blinkytimer)&&(blinkymode!=='run' && !blinkytimer)){
+        if((blinkymode!='run')&&(winkymode!='run')){
             context.save();
             context.translate(this.position.x, this.position.y);
 
@@ -668,7 +696,38 @@ function updateLivesUI() {
 
     for (let i = 0; i < playerLives; i++) {
         const icon = document.createElement('div');
-        icon.className = 'life-icon';
+        icon.className = 'icon-wrapper'
+        let mouseears = document.createElement('div')
+        mouseears.className = 'leftmouseears'
+        let mouseears2 = document.createElement('div')
+        mouseears2.className = 'rightmouseears'
+
+        let mouseearsin = document.createElement('div')
+        mouseearsin.className = 'leftmouseearsin'
+        let mouseearsin2 = document.createElement('div')
+        mouseearsin2.className = 'rightmouseearsin'
+
+        let mouseeyeleft1 = document.createElement('div')
+        mouseeyeleft1.className = 'mouseeyeleft'
+        let mouseeyeright1 = document.createElement('div')
+        mouseeyeright1.className = 'mouseeyeright'
+
+        let mouseeyeleftin1 = document.createElement('div')
+        mouseeyeleftin1.className = 'mouseeyeleftin'
+        let mouseeyerightin1 = document.createElement('div')
+        mouseeyerightin1.className = 'mouseeyerightin'
+
+        let mouse = document.createElement('div')
+        mouse.className = 'life-icon';
+        icon.appendChild(mouse)
+        icon.appendChild(mouseears)
+        icon.appendChild(mouseears2)
+        icon.appendChild(mouseearsin)
+        icon.appendChild(mouseearsin2)
+        icon.appendChild(mouseeyeleft1)
+        icon.appendChild(mouseeyeright1)
+        icon.appendChild(mouseeyeleftin1)
+        icon.appendChild(mouseeyerightin1)
         livesContainer.appendChild(icon);
     }
 }
@@ -772,7 +831,7 @@ function animate(currentTime) {
         if(blinkymode=='run'){
             if(blinkyrunningtime>=540){
                 blinkymode = 'chase'
-                blinkyrunningtime = 0
+                blinkyrunningtime = -1
             }
             blinkyrunningtime+=1
         }
@@ -808,7 +867,7 @@ function animate(currentTime) {
         if(winkymode=='run'){
             if(winkyrunningtime>=540){
                 winkymode = 'chase'
-                winkyrunningtime = 0
+                winkyrunningtime = -1
             }
             winkyrunningtime+=1
         }
@@ -835,7 +894,7 @@ function animate(currentTime) {
             if (false==circleCollision(player,steroids2arr[i])){
                 steroids2arr[i].draw()
             }else{
-                score+=500
+                score+=100
                 if(!blinkyrunninghome && blinkytimer==0){
                     blinkymode = 'run'
                     blinkyrunningtime = 0
@@ -998,6 +1057,14 @@ function animate(currentTime) {
                 
                 }
             }else{
+                if(blinkyrunninghome==false){
+                    texts.push(new FloatingText({
+                        x: player.position.x,
+                        y: player.position.y,
+                        text: "+200"
+                    }));
+                    score+=200
+                }
                 blinkyrunninghome = true
                 console.log('ghost goes back to home')
             }
@@ -1009,7 +1076,7 @@ function animate(currentTime) {
                 console.log(winkymode)
                 playerLives -= 1;
                 updateLivesUI()
-
+                
                 if (playerLives <= 0) {
                     alert("Game Over! Final Score: " + score);
                     cancelAnimationFrame(id)
@@ -1052,6 +1119,15 @@ function animate(currentTime) {
                 
                 }
             }else{
+                if(!winkyrunninghome){
+                    texts.push(new FloatingText({
+                        x: player.position.x,
+                        y: player.position.y,
+                        text: "+200"
+                    }));
+                    score+=200
+                }
+               
                 winkyrunninghome = true
                 console.log('ghost goes back to home')
             }
@@ -1060,6 +1136,13 @@ function animate(currentTime) {
         player.update();
         winky.update()
         red.update();
+        for (let i = texts.length - 1; i >= 0; i--) {
+            texts[i].update();
+
+            if (texts[i].life <= 0) {
+                texts.splice(i, 1);
+            }
+        }
     }
 }
 
@@ -1240,7 +1323,8 @@ function getNextwinkyMove(startX, startY, targetX, targetY, mapArray) {
             }
         }
         if(queue.length>0){
-            return {x:queue[Math.floor(Math.random()*queue.length)].dx,y:queue[Math.floor(Math.random()*queue.length)].dy}
+           let pick = queue[Math.floor(Math.random() * queue.length)];
+            return { x: pick.dx, y: pick.dy };
         }
         return {x:-1*winkylastmove.x,y:-1*winkylastmove.y} 
     }else{
