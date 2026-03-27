@@ -4,21 +4,14 @@ var bgcolor = "black"
 canvas.width = 1528
 let texts = []
 canvas.height = 698
+let isnextleveling = false
 console.log(canvas.width,canvas.height)
-let w = false
-let a = false
-let s = false
-let d = false
 let score = 0
-let texttimer = 0
 let steroidsarr = []
 let steroids2arr = []
 let wallsarr = []
 let holesarr = []
 let pacmanspeed = 1
-let rageDuration=0
-let Ogpacmanspeed = 1
-let OgrageDuration = 0
 let currentLevel = 1
 let playerLives = 3
 let mouthopen = true
@@ -93,9 +86,12 @@ const maps2 = {
        "1000000000000000000000000000001".split(""),
        "1111111111111111111111111111111".split("")],
 }
-grid = maps[0]
-ghostgrid = JSON.parse(JSON.stringify(maps2[0]));
-winkygrid = JSON.parse(JSON.stringify(maps2[0]));
+const mapKeys = Object.keys(maps)
+console.log(mapKeys)
+x = Math.floor(Math.random()*mapKeys.length)
+grid = maps[x]
+ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
+winkygrid = JSON.parse(JSON.stringify(maps2[x]));
 /**//*
     draw() {
         context.save();
@@ -137,7 +133,7 @@ class FloatingText {
         this.y = y;
         this.text = text;
         this.alpha = 1;        // opacity (1 = full, 0 = invisible)
-        this.life = targetFPS;        // frames (60 ≈ 1 second at 60 FPS)
+        this.life = 60;        // frames (60 ≈ 1 second at 60 FPS)
     }
 
     draw() {
@@ -151,7 +147,7 @@ class FloatingText {
 
     update() {
         this.life -= 1;
-        this.alpha = Math.max(0, this.life / targetFPS); 
+        this.alpha = Math.max(0, this.life / 60); 
         this.x-=0.5
         this.y-=0.5
         this.draw();
@@ -688,8 +684,6 @@ addEventListener("keydown", ({ key }) => {
         case 'd': desiredVelocity = { x: 4, y: 0 }; break;
     }
 });
-const mapKeys = Object.keys(maps)
-//maps[mapKeys[Math.floor(Math.random() * mapKeys.length)]]
 function updateLivesUI() {
     const livesContainer = document.getElementById('lives');
     livesContainer.innerHTML = 'Lives: '; // Clear current icons
@@ -781,26 +775,26 @@ function rectCircleCollision(player, circle) {
     );
 }
 let lastTime = 0;
-const targetFPS = 60;
-const fpsInterval = 1000 / targetFPS; // ~16.66ms
+let accumulator = 0;
+let fps = 60
+const MOVE_INTERVAL = 1000/fps;
 
 function animate(currentTime) {
-    // 1. Always request the next frame immediately
-    id = requestAnimationFrame(animate);
-
-    // 2. Set the initial time on the very first frame
+    requestAnimationFrame(animate);
+    if(isResetting)return
+    if(isnextleveling)return
     if (!lastTime) {
         lastTime = currentTime;
-        return; 
+        return;
     }
 
-    // 3. Calculate time passed
     const deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
 
-    // 4. ONLY run the game logic if enough time has passed!
-    if (deltaTime >= fpsInterval) {
-        // Adjust lastTime, but keep the remainder to prevent "drift"
-        lastTime = currentTime - (deltaTime % fpsInterval);
+    accumulator += deltaTime;
+
+    while (accumulator >= MOVE_INTERVAL) {
+        accumulator -= MOVE_INTERVAL;
         
         if(blinkytimer>0){
             console.log(ghostgrid[2][15])
@@ -883,7 +877,6 @@ function animate(currentTime) {
         for (let i = steroidsarr.length - 1; i >= 0; i--) {
             if (circleCollision(player, steroidsarr[i])) {
                 score += 10;
-                pacmanspeed = 1
                 steroidsarr.splice(i, 1);
             } else {
                 steroidsarr[i].draw();
@@ -1014,7 +1007,6 @@ function animate(currentTime) {
                 console.log(blinkymode)
                 playerLives -= 1;
                 updateLivesUI()
-
                 if (playerLives <= 0) {
                     alert("Game Over! Final Score: " + score);
                     cancelAnimationFrame(id)
@@ -1142,6 +1134,75 @@ function animate(currentTime) {
             if (texts[i].life <= 0) {
                 texts.splice(i, 1);
             }
+        }
+        if(steroidsarr.length==0 && steroids2arr.length==0 &&!isnextleveling){
+            console.log('resetting')
+            x = Math.floor(Math.random()*mapKeys.length)
+            grid = maps[x]
+            isnextleveling = true
+            fps+=10
+            ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
+            winkygrid = JSON.parse(JSON.stringify(maps2[x]));
+            currentLevel+=1
+            grid.forEach((row, y) => {
+                row.forEach((symbol, x) => {
+                    // Calculate the exact center of this tile
+                    const centerX = x * blocksize + blocksize / 2;
+                    const centerY = y * blocksize + blocksize / 2;
+
+                    if (symbol === "1") {
+                        wallsarr.push(new wall({
+                            position: { x: centerX, y: centerY },
+                            width: blocksize,
+                            height: blocksize
+                        }));
+                    } else if (symbol === "4") {
+                        steroids2arr.push(new steroids2({
+                            position: { x: centerX, y: centerY }
+                        }));
+                    } else if (symbol === "0") {
+                        steroidsarr.push(new steroids({
+                            position: { x: centerX, y: centerY }
+                        }));
+                    }
+                });
+            });
+
+            cancelAnimationFrame(id)
+                    setTimeout(() => {
+                        
+                        // Reset positions here so the player sees them jump back
+                        player.position.x = blocksize - 16;
+                        player.position.y = canvas.height / 2 - 8;
+                        player.velocity = { x: 0, y: 0 };
+                        desiredVelocity = { x: 0, y: 0 };
+                        
+                        red.position.x = 12 * blocksize + blocksize / 2;
+                        red.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        blinkymode = 'scatter';
+                        blinkyscattercount = 0;
+                        blinkylastmodechange = 0;
+
+                        winky.position.x = 19 * blocksize + blocksize / 2;
+                        winky.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        winkymode = 'scatter';
+                        winkyscattercount = 0;
+                        winkylastmodechange = 0;
+                        player.angle = 0
+                        lastTime = performance.now(); 
+                        isnextleveling = false; // Unlock the game!
+                        blinkytimer = 0;
+                        winkytimer = 0;
+                        blinkyrunninghome = false;
+                        winkyrunninghome = false;
+                        id = requestAnimationFrame(animate);
+                        
+                    }, 2500);
+
         }
     }
 }
