@@ -1,7 +1,7 @@
 <header>
   <title>Rat chase</title>
   <link rel="shortcut icon" type="image/x-icon" href="cheese.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&family=Tiny5&display=swap" rel="stylesheet">
 </header>
 <style>
   html, body {
@@ -54,7 +54,7 @@
     position: relative; 
     width: 20px;
     height: 20px;
-    margin-top: 10px; /* Gives a little breathing room for the ears */
+    margin-top: 10px;
   }
   .icon-wrapper div {
     position: absolute;
@@ -86,7 +86,7 @@
   width: 8px; height: 8px;
   background-color: pink;
   top: -2px; left: -3px;
-  z-index: 1; /* Keeps inner ear on top */
+  z-index: 1; 
 }
 .rightmouseearsin {
   width: 8px; height: 8px;
@@ -108,7 +108,7 @@
   width: 5px; height: 5px;
   background-color: black;
   top: 4px; left: -0.5px;
-  z-index: 2; /* Keeps pupil on top */
+  z-index: 2; 
 }
 .mouseeyerightin {
   width: 5px; height: 5px;
@@ -118,16 +118,66 @@
 }
   
   #points { 
-    color: yellow; } /* Make points stand out! */
+    color: yellow; } 
+  #leaderboard-overlay {
+    display: none; 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    color: white; 
+    padding: 15px;
+    text-align: center;
+    font-family: 'Press Start 2p', system-ui;
+    z-index: 100;
+    width: 90%;
+    max-width: 350px; /* Slimmer so it fits next to things */
+}
+
+  #leaderboard li {
+    opacity: 0.71;
+      background: rgb(14, 18, 126);
+      margin: 5px 0;
+      font-size: 14px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: flex;
+      font-family: 'Press Start 2p';
+      justify-content: space-between;
+  }
+  button {
+      background: #2e3bcc;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+  }
+
+  button:hover {
+      background: #212ca7;
+  }
 </style>
 
 <div id="game-container">
     <canvas id="gameCanvas"></canvas>
-    
+    <div id="leaderboard-overlay" style="
+        display: none; 
+        position: absolute; 
+        top: 70%; left: 50%; 
+        transform: translate(-50%, -50%);
+        color: white; 
+        padding: 20px;
+        text-align: center;
+        font-family: 'Arial', sans-serif;">
+        
+        <ul id="leaderboard" style="list-style: none; padding: 0;"></ul>
+    </div>
     <div id="ui-layer">
         <div id="levels" class="stat-label">Level: 0</div>
         <div id="lives" class="stat-label">Lives: </div>
         <div id='points' class="stat-label">Points: 0</div>
     </div>
 </div>
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>

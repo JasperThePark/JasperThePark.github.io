@@ -1,6 +1,30 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyC-8_Ys-j18qWZU484P7NJMWDxs8aMc-K0",
+    authDomain: "ratchase-pacman.firebaseapp.com",
+    projectId: "ratchase-pacman",
+    storageBucket: "ratchase-pacman.firebasestorage.app",
+    messagingSenderId: "619931203243",
+    appId: "1:619931203243:web:a97e7fb96e595fb40a69ee",
+    measurementId: "G-N9P4VF36MW"
+};
+
+const app = initializeApp(firebaseConfig);
+let db = getFirestore(app)
+const analytics = getAnalytics(app);
+
+
+
+
+
 const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
+const font = new FontFace('PressStart2P', 'url(https://gstatic.com)');
+document.fonts.add(font);
 canvas.width = 1528
 let texts = []
 canvas.height = 698
@@ -11,39 +35,14 @@ let steroidsarr = []
 let steroids2arr = []
 let wallsarr = []
 let holesarr = []
-let pacmanspeed = 1
+let extra = 0
+let pacmanspeed = 1+extra
 let currentLevel = 1
 let playerLives = 3
-let mouthopen = true
-let mouthOpenness =  Math.abs(Math.sin(this.frame)) * this.radius*pacmanspeed
 let blocksize = 36
 console.log((canvas.width/4*3)/2-blocksize*4.5)
 console.log(blocksize/2)
 let grid = []
-let isResetting = false;
-let blinkymode = 'scatter'
-let blinkyscattercount = 0
-let blinkylastmodechange = 0
-let blinkyisscattering = false
-let blinkylastmove = 0
-let blinkyrunningtime = 0
-let blinkyrunninghome = false
-const blinkyhome = { x: 12, y: 1}
-let blinkytimer = 0
-
-
-let winkymode = 'scatter'
-let winkyscattercount = 0
-let winkylastmodechange = 0
-let winkyisscattering = false
-let winkylastmove = 0
-let winkyrunningtime = 0
-let winkyrunninghome = false
-const winkyhome = { x: 19, y: 1}
-let winkytimer = 0
-
-
-let id = ''
 const maps = {
     0:["1111111111111111111111111111111".split(""),
        "1000000000015555555510000000001".split(""),
@@ -88,10 +87,47 @@ const maps2 = {
 }
 const mapKeys = Object.keys(maps)
 console.log(mapKeys)
-x = Math.floor(Math.random()*mapKeys.length)
+let x = Math.floor(Math.random()*mapKeys.length)
 grid = maps[x]
-ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
-winkygrid = JSON.parse(JSON.stringify(maps2[x]));
+let ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
+let winkygrid = JSON.parse(JSON.stringify(maps2[x]));
+let darkgrid = JSON.parse(JSON.stringify(maps2[x]));
+let isResetting = false;
+let blinkymode = 'scatter'
+let blinkyscattercount = 0
+let blinkylastmodechange = 0
+let blinkyisscattering = false
+let blinkylastmove = 0
+let blinkyrunningtime = 0
+let blinkyrunninghome = false
+const blinkyhome = { x: 12, y: 1}
+let blinkytimer = 0
+
+
+let winkymode = 'scatter'
+let winkyscattercount = 0
+let winkylastmodechange = 0
+let winkyisscattering = false
+let winkylastmove = 0
+let winkyrunningtime = 0
+let winkyrunninghome = false
+const winkyhome = { x: 19, y: 1}
+let winkytimer = 0
+
+let darkmode = 'scatter'
+let darkscattercount = 0
+let darklastmodechange = 0
+let darkisscattering = false
+let darklastmove = 0
+let darkrunningtime = 0
+let darkrunninghome = false
+const darkhome = { x: 16, y: 1 }
+let darktimer = 0
+let darkSpeed = Math.random()*1.5+2.5
+let blinkySpeed = 3.5;
+let winkySpeed = 2.8;
+let id = ''
+
 /**//*
     draw() {
         context.save();
@@ -424,6 +460,24 @@ class ghost {
                 else if (this.position.x < 0) this.position.x = (grid[0].length) * blocksize;
                 this.draw2()
             }
+        }else if(this.name=='dark'){
+            if(!darkrunninghome){
+                this.position.x += this.velocity.x;
+                this.position.y += this.velocity.y;
+                
+                if (this.position.x > (grid[0].length) * blocksize) this.position.x = 0;
+                else if (this.position.x < 0) this.position.x = (grid[0].length) * blocksize;
+                this.draw();
+            }else{
+                this.position.x += this.velocity.x*4; //2.5* 2.8 can be 7 which is the same as 3.5*2
+                this.position.y += this.velocity.y*4;
+
+                if (this.position.x > (grid[0].length) * blocksize) this.position.x = 0;
+                else if (this.position.x < 0) this.position.x = (grid[0].length) * blocksize;
+                else if (this.position.y > (grid.length) * blocksize) this.position.y = 0;
+                else if (this.position.y < 0) this.position.y = (grid.length) * blocksize;
+                this.draw2()
+            }
         }
         
         
@@ -495,7 +549,7 @@ class pacMan {
         this.tailFrame = 0
     }
     draw() {
-        if((blinkymode!='run')&&(winkymode!='run')){
+        if((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run')){
             context.save();
             context.translate(this.position.x, this.position.y);
 
@@ -674,6 +728,25 @@ const winky = new ghost({
     color7:'#e6e6e6',
     name:'winky',
 });
+const linearGradient = context.createLinearGradient(0, 0, 150, 150);
+
+linearGradient.addColorStop(0, "#8b3100"); 
+linearGradient.addColorStop(1, '#ed755a'); 
+const dark = new ghost({
+    position: {
+        x: 15 * blocksize + blocksize / 2,
+        y: 1 * blocksize + blocksize / 2
+    },
+    velocity: { x: 0, y: 0 },
+    color: '#8b3100',
+    color2: '#ed755a',
+    color3: 'white',
+    color4: 'white',
+    color5: '#ffc4c4',
+    color6: '#ed755a',
+    color7: linearGradient,
+    name: 'dark',
+});
 let desiredVelocity = { x: 0, y: 0 };
 
 addEventListener("keydown", ({ key }) => {
@@ -777,7 +850,7 @@ function rectCircleCollision(player, circle) {
 let lastTime = 0;
 let accumulator = 0;
 let fps = 60
-const MOVE_INTERVAL = 1000/fps;
+const targetFPS = 1000/fps;
 
 function animate(currentTime) {
     requestAnimationFrame(animate);
@@ -788,16 +861,16 @@ function animate(currentTime) {
         return;
     }
 
-    const deltaTime = currentTime - lastTime;
+    let deltaTime = currentTime - lastTime;
+    if(deltaTime>50)deltaTime=50
     lastTime = currentTime;
 
     accumulator += deltaTime;
 
-    while (accumulator >= MOVE_INTERVAL) {
-        accumulator -= MOVE_INTERVAL;
+    while (accumulator >= targetFPS) {
+        accumulator -= targetFPS;
         
         if(blinkytimer>0){
-            console.log(ghostgrid[2][15])
             blinkytimer+=1
             if(blinkytimer>200){
                 blinkytimer = 0
@@ -814,7 +887,6 @@ function animate(currentTime) {
         if(blinkymode=='chase' && blinkyscattercount<4 && !blinkyrunninghome){
             if(blinkylastmodechange>=480){
                 if(Math.random()>0.35){
-                    console.log('scatter')
                     blinkymode = 'scatter'
                     blinkyscattercount+=1
                 }
@@ -833,7 +905,6 @@ function animate(currentTime) {
 
 
         if(winkytimer>0){
-            console.log(winkygrid[2][15])
             winkytimer+=1
             if(winkytimer>200){
                 winkytimer = 0
@@ -850,7 +921,6 @@ function animate(currentTime) {
         if(winkymode=='chase' && winkyscattercount<4 && !winkyrunninghome){
             if(winkylastmodechange>=480){
                 if(Math.random()>0.35){
-                    console.log('scatter')
                     winkymode = 'scatter'
                     winkyscattercount+=1
                 }
@@ -865,6 +935,40 @@ function animate(currentTime) {
             }
             winkyrunningtime+=1
         }
+
+
+        if(darktimer>0){
+            darktimer+=1
+            if(darktimer>200){
+                darktimer = 0
+                darkgrid[2][15] = '0'
+                darkrunninghome = false
+            }
+            
+        }
+        if(darkmode=='run'){
+            dark.scared = true
+        }else{
+            dark.scared = false
+        }
+        if(darkmode=='chase' && darkscattercount<4 && !darkrunninghome){
+            if(darklastmodechange>=480){
+                if(Math.random()>0.35){
+                    darkmode = 'scatter'
+                    darkscattercount+=1
+                }
+                darklastmodechange = 0
+            }
+            darklastmodechange+=1
+        }
+        if(darkmode=='run'){
+            if(darkrunningtime>=540){
+                darkmode = 'chase'
+                darkrunningtime = -1
+            }
+            darkrunningtime+=1
+        }
+
 
         document.getElementById('points').innerText = `Points: ${score}`
         document.getElementById('levels').innerText = `Level: ${currentLevel}`
@@ -891,18 +995,19 @@ function animate(currentTime) {
                 if(!blinkyrunninghome && blinkytimer==0){
                     blinkymode = 'run'
                     blinkyrunningtime = 0
-                    console.log('collected')
                 }
                 if(!winkyrunninghome && winkytimer==0){
                     winkymode = 'run'
                     winkyrunningtime = 0
-                    console.log('collected')
+                }
+                if(!darkrunninghome && darktimer==0){
+                    darkmode = 'run'
+                    darkrunningtime = 0
                 }
 
                 steroids2arr.splice(i,1)
             }
         }
-
         // 1. TURNING LOGIC (Check if we CAN turn)
         let canTurn = true;
         const desiredPacman = {
@@ -975,9 +1080,9 @@ function animate(currentTime) {
             const nextMove = getNextblinkyMove(gGridX, gGridY, pGridX, pGridY, ghostgrid);
             blinkylastmove = nextMove
             // 3. Set velocity based on speed (using 2 for smoothness)
-            let ghostSpeed = 3.5;
-            red.velocity.x = nextMove.x * ghostSpeed;
-            red.velocity.y = nextMove.y * ghostSpeed;
+            blinkySpeed = 3.5*(1+extra);
+            red.velocity.x = nextMove.x * blinkySpeed;
+            red.velocity.y = nextMove.y * blinkySpeed;
         }
         if (Math.abs(winky.position.x % blocksize - blocksize / 2) < 2 && 
             Math.abs(winky.position.y % blocksize - blocksize / 2) < 2) {
@@ -995,11 +1100,28 @@ function animate(currentTime) {
             const nextMove = getNextwinkyMove(gGridX, gGridY, pGridX, pGridY, winkygrid);
             winkylastmove = nextMove
             // 3. Set velocity based on speed (using 2 for smoothness)
-            let ghostSpeed = 2.8;
-            winky.velocity.x = nextMove.x * ghostSpeed;
-            winky.velocity.y = nextMove.y * ghostSpeed;
+            winkySpeed = 2.8*(1+extra);
+            winky.velocity.x = nextMove.x * winkySpeed;
+            winky.velocity.y = nextMove.y * winkySpeed;
         }
+        
+        if (Math.abs(dark.position.x % blocksize - blocksize / 2) < 2 && 
+            Math.abs(dark.position.y % blocksize - blocksize / 2) < 2) {
 
+            const gGridX = Math.round((dark.position.x - blocksize / 2) / blocksize);
+            const gGridY = Math.round((dark.position.y - blocksize / 2) / blocksize);
+            const pGridX = Math.round((player.position.x - blocksize / 2) / blocksize);
+            const pGridY = Math.round((player.position.y - blocksize / 2) / blocksize);
+            dark.position.x = gGridX * blocksize + blocksize / 2;
+            dark.position.y = gGridY * blocksize + blocksize / 2;
+            const nextMove = getNextdarkMove(gGridX, gGridY, pGridX, pGridY, darkgrid);
+            darklastmove = nextMove;
+
+            darkSpeed = (Math.random() * 1.5 + 2.5)*(1+extra);
+            console.log(extra)
+            dark.velocity.x = nextMove.x * darkSpeed;
+            dark.velocity.y = nextMove.y * darkSpeed;
+        }
 
         if (circleCollision(player, red)) {
             if(blinkymode!='run' &&!isResetting){
@@ -1008,8 +1130,90 @@ function animate(currentTime) {
                 playerLives -= 1;
                 updateLivesUI()
                 if (playerLives <= 0) {
-                    alert("Game Over! Final Score: " + score);
+                    document.getElementById('ui-layer').hidden = true
                     cancelAnimationFrame(id)
+                    const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+                    gradient.addColorStop(0, "black");
+                    gradient.addColorStop(0.3, "black");
+                    gradient.addColorStop(1, "#3533cd");  
+
+                    context.fillStyle = gradient;
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    context.textAlign = "center"
+                    context.fillStyle = 'white'
+                    context.font = '60px "Press Start 2P"';
+                    context.fillText('GAME OVER', canvas.width / 2, canvas.height / 6);
+
+                    context.textAlign = "center"
+                    context.fillStyle = '#e9cb36'
+                    context.font = '35px "Press Start 2P"';
+                    context.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 4);
+
+
+                    // Button properties
+                    const x = canvas.width / 2 -130, y = canvas.height / 3 -35, width = 260, height = 70, radius = 20;
+
+                    context.beginPath();
+                    context.roundRect(x, y, width, height, radius); // Draws the rounded path
+                    context.fillStyle = "#422bcd";
+                    context.fill();
+
+                    // Add text
+                    context.fillStyle = "white";
+                    context.font = '9px "Tiny5" bold';
+                    context.textAlign = "center";
+                    context.textBaseline = "middle";
+                    context.fillText("RETRY", canvas.width / 2, canvas.height / 3);
+                    
+                    context.textAlign = "center"
+                    context.fillStyle = '#38b6ff'
+                    context.font = '35px "Press Start 2P"';
+                    context.fillText("Leaderboard", canvas.width / 2, canvas.height / 9 *4);
+                                        
+
+                    window.refreshLeaderboard = async function() {
+                        const list = document.getElementById("leaderboard");
+                        list.innerHTML = "<li>Loading...</li>";
+                        
+                        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(9));
+                        
+                        const querySnapshot = await getDocs(q);
+                        list.innerHTML = "";
+                        let i =0
+                        querySnapshot.forEach((doc) => {
+                        i+=1
+                        const data = doc.data();
+                        list.innerHTML += `<li>${i}.                     ${data.name}: ${data.score}</li>`;
+                        });
+                    }
+                    window.submitScore = async function(playerName, score) {
+
+                        if(score === 0) return; 
+
+                        try {
+                        await addDoc(collection(db, "leaderboard"), {
+                            name: playerName,
+                            score: Number(score), 
+                            timestamp: Date.now()
+                        });
+                        console.log("Score submitted successfully");
+                        window.refreshLeaderboard();
+                        } catch (error) {
+                        console.error("Error adding score: ", error);
+                        alert("Could not save score. Check console.");
+                        }
+                    }
+                    const playerName = prompt("Game Over! Enter your name:");
+                    if (playerName) {
+                        window.submitScore(playerName, score);
+                    } else {
+                        window.refreshLeaderboard();
+                    }
+                    const overlay = document.getElementById('leaderboard-overlay');
+                    overlay.style.display = 'block';
+                    
+                    return
                 } else {
                     cancelAnimationFrame(id)
                     setTimeout(() => {
@@ -1024,14 +1228,15 @@ function animate(currentTime) {
                         red.position.x = 12 * blocksize + blocksize / 2;
                         red.position.y = 1 * blocksize + blocksize / 2;
                         
-                        // Give the player a tiny breather before the ghost attacks again
-                        blinkymode = 'scatter';
+                        // Give the player a tiny breather before the ghost attacks againi
                         blinkyscattercount = 0;
                         blinkylastmodechange = 0;
 
                         winky.position.x = 19 * blocksize + blocksize / 2;
                         winky.position.y = 1 * blocksize + blocksize / 2;
-                        
+
+                        dark.position.x = 15*blocksize+blocksize/2
+                        dark.position.y = 1*blocksize+blocksize/2
                         // Give the player a tiny breather before the ghost attacks again
                         winkymode = 'scatter';
                         winkyscattercount = 0;
@@ -1092,7 +1297,9 @@ function animate(currentTime) {
 
                         winky.position.x = 19 * blocksize + blocksize / 2;
                         winky.position.y = 1 * blocksize + blocksize / 2;
-                        
+                        darkmode = 'scatter';
+                        dark.position.x = 15*blocksize+blocksize/2
+                        dark.position.y = 1*blocksize+blocksize/2
                         // Give the player a tiny breather before the ghost attacks again
                         winkymode = 'scatter';
                         winkyscattercount = 0;
@@ -1125,9 +1332,80 @@ function animate(currentTime) {
             }
             
         }
+        if (circleCollision(player, dark)) {
+            if(darkmode!='run'&&!isResetting){
+                isResetting = true
+                playerLives -= 1;
+                updateLivesUI()
+                
+                if (playerLives <= 0) {
+                    alert("Game Over! Final Score: " + score);
+                    cancelAnimationFrame(id)
+                } else {
+                    cancelAnimationFrame(id)
+                    setTimeout(() => {
+                        
+                        // Reset positions here so the player sees them jump back
+                        player.position.x = blocksize - 16;
+                        player.position.y = canvas.height / 2 - 8;
+                        player.velocity = { x: 0, y: 0 };
+                        desiredVelocity = { x: 0, y: 0 };
+                        
+                        red.position.x = 12 * blocksize + blocksize / 2;
+                        red.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        blinkymode = 'scatter';
+                        blinkyscattercount = 0;
+                        blinkylastmodechange = 0;
+
+                        winkymode = 'scatter';
+                        winky.position.x = 19 * blocksize + blocksize / 2;
+                        winky.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        darkmode = 'scatter';
+                        dark.position.x = 15*blocksize+blocksize/2
+                        dark.position.y = 1*blocksize+blocksize/2
+
+                        // Give the player a tiny breather before the ghost attacks again
+                        darkmode = 'scatter';
+                        darkscattercount = 0;
+                        darklastmodechange = 0;
+                        player.angle = 0
+                        lastTime = performance.now(); 
+                        isResetting = false; // Unlock the game!
+                        blinkytimer = 0;
+                        winkytimer = 0;
+                        darktimer = 0
+                        blinkyrunninghome = false;
+                        winkyrunninghome = false;
+                        darkrunninghome = false
+                        id = requestAnimationFrame(animate);
+                        
+                    }, 2500);
+
+                
+                }
+            }else{
+                if(!darkrunninghome){
+                    texts.push(new FloatingText({
+                        x: player.position.x,
+                        y: player.position.y,
+                        text: "+200"
+                    }));
+                    score+=200
+                }
+               
+                darkrunninghome = true
+                console.log('ghost goes back to home')
+            }
+            
+        }
+
         player.update();
         winky.update()
         red.update();
+        dark.update();
         for (let i = texts.length - 1; i >= 0; i--) {
             texts[i].update();
 
@@ -1140,9 +1418,10 @@ function animate(currentTime) {
             x = Math.floor(Math.random()*mapKeys.length)
             grid = maps[x]
             isnextleveling = true
-            fps+=10
+            fps+=8
             ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
             winkygrid = JSON.parse(JSON.stringify(maps2[x]));
+            darkgrid = JSON.parse(JSON.stringify(maps2[x]));
             currentLevel+=1
             grid.forEach((row, y) => {
                 row.forEach((symbol, x) => {
@@ -1179,7 +1458,7 @@ function animate(currentTime) {
                         
                         red.position.x = 12 * blocksize + blocksize / 2;
                         red.position.y = 1 * blocksize + blocksize / 2;
-                        
+                        extra+=0.2
                         // Give the player a tiny breather before the ghost attacks again
                         blinkymode = 'scatter';
                         blinkyscattercount = 0;
@@ -1192,13 +1471,25 @@ function animate(currentTime) {
                         winkymode = 'scatter';
                         winkyscattercount = 0;
                         winkylastmodechange = 0;
+
+                        dark.position.x = 15*blocksize+blocksize/2
+                        dark.position.y = 1*blocksize+blocksize/2
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        darkmode = 'scatter';
+                        darkscattercount = 0;
+                        darklastmodechange = 0;
+
+
                         player.angle = 0
                         lastTime = performance.now(); 
                         isnextleveling = false; // Unlock the game!
                         blinkytimer = 0;
                         winkytimer = 0;
+                        darktimer = 0;
                         blinkyrunninghome = false;
                         winkyrunninghome = false;
+                        darkrunninghome = false;
                         id = requestAnimationFrame(animate);
                         
                     }, 2500);
@@ -1258,7 +1549,6 @@ function getNextblinkyMove(startX, startY, targetX, targetY, mapArray) {
             if(blinkyrunninghome && blinkytimer==0){
                 blinkymode = 'chase'
                 ghostgrid[2][15] = '1'
-                console.log(ghostgrid[2][15])
                 blinkytimer = 1
             }
             return { x: 0, y: 0 };
@@ -1470,3 +1760,276 @@ function getNextwinkyMove(startX, startY, targetX, targetY, mapArray) {
     }
     
 }
+function getNextdarkMove(startX, startY, targetX, targetY, mapArray) {
+    let dirX = 0;
+    let dirY = 0;
+
+    if (player.velocity.x > 0) dirX = 1;
+    else if (player.velocity.x < 0) dirX = -1;
+    else if (player.velocity.y > 0) dirY = 1;
+    else if (player.velocity.y < 0) dirY = -1;
+
+    let refX = Math.round((player.position.x - blocksize / 2) / blocksize);
+    let refY = Math.round((player.position.y - blocksize / 2) / blocksize);
+
+    refY += dirY * 2;
+
+    let finalTargetX = (2 * refX) - Math.round((red.position.x-blocksize/2)/blocksize);
+    let finalTargetY = (2 * refY) - Math.round((red.position.y-blocksize/2)/blocksize);
+
+    targetX = Math.max(0, Math.min(finalTargetX, mapArray[0].length - 1));
+    targetY = Math.max(0, Math.min(finalTargetY, mapArray.length - 1));
+    if(darkmode=='run' && !darkrunninghome){
+        const directions = [
+            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
+            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+        ];
+
+        let queue = [];
+        for (let dir of directions) {
+            if (dir.dx === -darklastmove.x && dir.dy === -darklastmove.y) {
+                continue; 
+            }
+            let nx = startX + dir.dx;
+            let ny = startY + dir.dy;
+
+            // Portal wrap-around
+            if (nx < 0) nx = mapArray[0].length - 1;
+            else if (nx >= mapArray[0].length) nx = 0;
+
+            if (ny >= 0 && ny < mapArray.length) {
+                // "3" is the portal tile in your map, "1" is a wall
+                if (mapArray[ny][nx] !== '1') {
+                    queue.push(dir);
+                }
+            }
+        }
+        if(queue.length>0){
+           let pick = queue[Math.floor(Math.random() * queue.length)];
+            return { x: pick.dx, y: pick.dy };
+        }
+        return {x:-1*darklastmove.x,y:-1*darklastmove.y} 
+    }else{
+        if (darkmode === 'scatter') {
+            targetX = ghostgrid[0].length-2;
+            targetY = ghostgrid.length-2;
+        }
+        else if(darkrunninghome){
+            targetX = darkhome.x
+            targetY = darkhome.y 
+        }
+        if (startX === targetX && startY === targetY) {
+            if (darkmode === 'scatter') {
+                darkmode = 'chase'; // Instantly flip back to chase
+            }
+            if(darkrunninghome && darktimer==0){
+                darkmode = 'chase'
+                darkgrid[2][15] = '1'
+                darktimer = 1
+            }
+            return { x: 0, y: 0 };
+        }
+
+        const directions = [
+            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
+            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+        ];
+
+        let queue = [];
+        let visited = Array(mapArray.length).fill().map(() => Array(mapArray[0].length).fill(false));
+        let visited2 = Array(mapArray.length).fill().map(() => Array(mapArray[0].length).fill(false));
+        // Start BFS from the ghost's current neighbors
+        for (let dir of directions) {
+            let nx = startX + dir.dx;
+            let ny = startY + dir.dy;
+
+            // Portal wrap-around
+            if (nx < 0) nx = mapArray[0].length - 1;
+            else if (nx >= mapArray[0].length) nx = 0;
+
+            if (ny >= 0 && ny < mapArray.length) {
+                // "3" is the portal tile in your map, "1" is a wall
+                if (mapArray[ny][nx] !== '1' && !visited[ny][nx]) {
+                    if (nx === targetX && ny === targetY) return { x: dir.dx, y: dir.dy };
+                    visited[ny][nx] = true;
+                    visited2[ny][nx] = true;
+                    queue.push({ x: nx, y: ny, firstX: dir.dx, firstY: dir.dy });
+                }
+            }
+        }
+        let obj = new Map()
+        let m = 9999999
+        if(ghostgrid[targetY][targetX]=='1'){
+            while (queue.length > 0) {
+                let cell = queue.shift();
+                
+                for (let dir of directions) {
+                    let nx = cell.x + dir.dx;
+                    let ny = cell.y + dir.dy;
+
+                    // Portal wrap-around
+                    if (nx < 0) nx = mapArray[0].length - 1;
+                    else if (nx >= mapArray[0].length) nx = 0;
+
+                    if (ny >= 0 && ny < mapArray.length) {
+                        if (mapArray[ny][nx] !== '1' && !visited[ny][nx]) {
+                            let dist = Math.abs(targetX-nx)+Math.abs(targetY-ny)
+                            m = Math.min(m,dist)
+                            obj.set(dist,[cell.firstX,cell.firstY])
+                            visited[ny][nx] = true;
+                            queue.push({ 
+                                x: nx, 
+                                y: ny, 
+                                firstX: cell.firstX, 
+                                firstY: cell.firstY 
+                            });
+                        }
+                    }
+                }
+            }
+        }else{
+            while (queue.length > 0) {
+                let cell = queue.shift();
+
+                for (let dir of directions) {
+                    let nx = cell.x + dir.dx;
+                    let ny = cell.y + dir.dy;
+
+                    // Portal wrap-around
+                    if (nx < 0) nx = mapArray[0].length - 1;
+                    else if (nx >= mapArray[0].length) nx = 0;
+
+                    if (ny >= 0 && ny < mapArray.length) {
+                        if (!visited2[ny][nx]) {
+                            // If we found the target, return the direction we took at the very start
+                            if (nx === targetX && ny === targetY) {
+                                return { x: cell.firstX, y: cell.firstY };
+                            }
+
+                            visited2[ny][nx] = true;
+                            queue.push({ 
+                                x: nx, 
+                                y: ny, 
+                                firstX: cell.firstX, 
+                                firstY: cell.firstY 
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        return {x:obj.get(m)[0], y:obj.get(m)[1]} || { x: 0, y: 0 };
+    }
+}
+
+
+
+
+function resetGame() {
+    let mapKeys = Object.keys(maps);
+    wallsarr = [];      // Clears old walls
+    steroidsarr = [];   // Clears old dots
+    steroids2arr = [];  // Clears old power pellets
+    playerLives = 3;          // Don't forget to give them their lives back!
+    x = Math.floor(Math.random()*mapKeys.length)
+    grid = maps[x]
+        isnextleveling = true
+        fps = 60
+        score = 0
+        ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
+            winkygrid = JSON.parse(JSON.stringify(maps2[x]));
+            darkgrid = JSON.parse(JSON.stringify(maps2[x]));
+            currentLevel=1
+            grid.forEach((row, y) => {
+                row.forEach((symbol, x) => {
+                    // Calculate the exact center of this tile
+                    const centerX = x * blocksize + blocksize / 2;
+                    const centerY = y * blocksize + blocksize / 2;
+
+                    if (symbol === "1") {
+                        wallsarr.push(new wall({
+                            position: { x: centerX, y: centerY },
+                            width: blocksize,
+                            height: blocksize
+                        }));
+                    } else if (symbol === "4") {
+                        steroids2arr.push(new steroids2({
+                            position: { x: centerX, y: centerY }
+                        }));
+                    } else if (symbol === "0") {
+                        steroidsarr.push(new steroids({
+                            position: { x: centerX, y: centerY }
+                        }));
+                    }
+                });
+            });
+                    setTimeout(() => {
+                        
+                        // Reset positions here so the player sees them jump back
+                        player.position.x = blocksize - 16;
+                        player.position.y = canvas.height / 2 - 8;
+                        player.velocity = { x: 0, y: 0 };
+                        desiredVelocity = { x: 0, y: 0 };
+                        
+                        red.position.x = 12 * blocksize + blocksize / 2;
+                        red.position.y = 1 * blocksize + blocksize / 2;
+                        extra+=0.2
+                        // Give the player a tiny breather before the ghost attacks again
+                        blinkymode = 'scatter';
+                        blinkyscattercount = 0;
+                        blinkylastmodechange = 0;
+
+                        winky.position.x = 19 * blocksize + blocksize / 2;
+                        winky.position.y = 1 * blocksize + blocksize / 2;
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        winkymode = 'scatter';
+                        winkyscattercount = 0;
+                        winkylastmodechange = 0;
+
+                        dark.position.x = 15*blocksize+blocksize/2
+                        dark.position.y = 1*blocksize+blocksize/2
+                        
+                        // Give the player a tiny breather before the ghost attacks again
+                        darkmode = 'scatter';
+                        darkscattercount = 0;
+                        darklastmodechange = 0;
+
+
+                        player.angle = 0
+                        lastTime = performance.now(); 
+                        isnextleveling = false; // Unlock the game!
+                        blinkytimer = 0;
+                        winkytimer = 0;
+                        darktimer = 0;
+                        blinkyrunninghome = false;
+                        winkyrunninghome = false;
+                        darkrunninghome = false;
+                        id = requestAnimationFrame(animate);
+                        
+                    }, 250);
+
+    const overlay = document.getElementById('leaderboard-overlay');
+    overlay.style.display = 'none';
+    document.getElementById('ui-layer').hidden = false
+
+}
+
+canvas.addEventListener('click', (event) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+                        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+                        const btnX = canvas.width / 2 - 130;
+                        const btnY = canvas.height / 3 - 35;
+                        const btnWidth = 260;
+                        const btnHeight = 70;
+
+                        if (playerLives <= 0 && 
+                            mouseX >= btnX && mouseX <= btnX + btnWidth &&
+                            mouseY >= btnY && mouseY <= btnY + btnHeight) {
+                            
+                            console.log("Retry button clicked!");
+                            resetGame();
+                        }
+                    });
