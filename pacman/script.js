@@ -1131,7 +1131,7 @@ function animate(currentTime) {
                 updateLivesUI()
                 if (playerLives <= 0) {
                     document.getElementById('ui-layer').hidden = true
-                    cancelAnimationFrame(id)
+                    context.font = '60px "Press Start 2P"';
                     const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
                     gradient.addColorStop(0, "black");
                     gradient.addColorStop(0.3, "black");
@@ -1142,7 +1142,7 @@ function animate(currentTime) {
                     
                     context.textAlign = "center"
                     context.fillStyle = 'white'
-                    context.font = '60px "Press Start 2P"';
+                    
                     context.fillText('GAME OVER', canvas.width / 2, canvas.height / 6);
 
                     context.textAlign = "center"
@@ -1212,7 +1212,7 @@ function animate(currentTime) {
                     }
                     const overlay = document.getElementById('leaderboard-overlay');
                     overlay.style.display = 'block';
-                    
+                    cancelAnimationFrame(id)
                     return
                 } else {
                     cancelAnimationFrame(id)
@@ -1963,6 +1963,7 @@ function resetGame() {
                     }
                 });
             });
+            cancelAnimationFrame(id)
                     setTimeout(() => {
                         
                         // Reset positions here so the player sees them jump back
