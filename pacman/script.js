@@ -126,8 +126,8 @@ let darktimer = 0
 let darkSpeed = Math.random()*1.5+2.5
 let blinkySpeed = 3.5;
 let winkySpeed = 2.8;
-let id = ''
-
+let id
+let isGameOver = false;
 /**//*
     draw() {
         context.save();
@@ -395,7 +395,7 @@ class ghost {
         context.stroke();
         context.restore();
 
-        // 3. THE EARS (Increased size multipliers)
+        // 3. THE EARS 
         context.fillStyle = this.color7;
         // Left Ear - positioned relative to head
         context.beginPath();
@@ -755,6 +755,11 @@ addEventListener("keydown", ({ key }) => {
         case 'a': desiredVelocity = { x: -4, y: 0 }; break;
         case 's': desiredVelocity = { x: 0, y: 4 }; break;
         case 'd': desiredVelocity = { x: 4, y: 0 }; break;
+
+        case 'arrowup': desiredVelocity = { x: 0, y: -4 }; break;
+        case 'arrowleft': desiredVelocity = { x: -4, y: 0 }; break;
+        case 'arrowdown': desiredVelocity = { x: 0, y: 4 }; break;
+        case 'arrowright': desiredVelocity = { x: 4, y: 0 }; break;
     }
 });
 function updateLivesUI() {
@@ -850,23 +855,25 @@ function rectCircleCollision(player, circle) {
 let lastTime = 0;
 let accumulator = 0;
 let fps = 60
-const targetFPS = 1000/fps;
+let targetFPS = 1000/fps;
 
 function animate(currentTime) {
-    requestAnimationFrame(animate);
+    pacmanspeed = 1+extra
+    console.log(fps)
+    if (isGameOver) return;
+    if (!currentTime) currentTime = performance.now();
+    targetFPS = 1000/fps;
+    id = requestAnimationFrame(animate);
     if(isResetting)return
     if(isnextleveling)return
     if (!lastTime) {
         lastTime = currentTime;
         return;
     }
-
     let deltaTime = currentTime - lastTime;
     if(deltaTime>50)deltaTime=50
     lastTime = currentTime;
-
     accumulator += deltaTime;
-
     while (accumulator >= targetFPS) {
         accumulator -= targetFPS;
         
@@ -1118,20 +1125,24 @@ function animate(currentTime) {
             darklastmove = nextMove;
 
             darkSpeed = (Math.random() * 1.5 + 2.5)*(1+extra);
-            console.log(extra)
             dark.velocity.x = nextMove.x * darkSpeed;
             dark.velocity.y = nextMove.y * darkSpeed;
         }
 
         if (circleCollision(player, red)) {
             if(blinkymode!='run' &&!isResetting){
+                
                 isResetting = true
-                console.log(blinkymode)
                 playerLives -= 1;
                 updateLivesUI()
+                context.fillStyle = 'white'
+                context.font = '1px "Press Start 2P"';
+                context.textAlign = "center"
+                
+                context.fillText('Loadiing font', canvas.width, canvas.height);
                 if (playerLives <= 0) {
+                    cancelAnimationFrame(id)
                     document.getElementById('ui-layer').hidden = true
-                    context.font = '60px "Press Start 2P"';
                     const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
                     gradient.addColorStop(0, "black");
                     gradient.addColorStop(0.3, "black");
@@ -1139,9 +1150,9 @@ function animate(currentTime) {
 
                     context.fillStyle = gradient;
                     context.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    context.textAlign = "center"
                     context.fillStyle = 'white'
+                    context.font = '60px "Press Start 2P"';
+                    context.textAlign = "center"
                     
                     context.fillText('GAME OVER', canvas.width / 2, canvas.height / 6);
 
@@ -1212,7 +1223,24 @@ function animate(currentTime) {
                     }
                     const overlay = document.getElementById('leaderboard-overlay');
                     overlay.style.display = 'block';
-                    cancelAnimationFrame(id)
+                    canvas.addEventListener('click', (event) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+                        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+                        const btnX = canvas.width / 2 - 130;
+                        const btnY = canvas.height / 3 - 35;
+                        const btnWidth = 260;
+                        const btnHeight = 70;
+
+                        if (playerLives <= 0 && 
+                            mouseX >= btnX && mouseX <= btnX + btnWidth &&
+                            mouseY >= btnY && mouseY <= btnY + btnHeight) {
+                            
+                            console.log("Retry button clicked!");
+                            resetGame();
+                        }
+                    });
                     return
                 } else {
                     cancelAnimationFrame(id)
@@ -1273,10 +1301,113 @@ function animate(currentTime) {
                 console.log(winkymode)
                 playerLives -= 1;
                 updateLivesUI()
+                context.fillStyle = 'white'
+                context.font = '1px "Press Start 2P"';
+                context.textAlign = "center"
                 
+                context.fillText('Loadiing font', canvas.width, canvas.height);
                 if (playerLives <= 0) {
-                    alert("Game Over! Final Score: " + score);
+                    document.getElementById('ui-layer').hidden = true
+                    const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+                    gradient.addColorStop(0, "black");
+                    gradient.addColorStop(0.3, "black");
+                    gradient.addColorStop(1, "#3533cd");  
+
+                    context.fillStyle = gradient;
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    context.fillStyle = 'white'
+                    context.font = '60px "Press Start 2P"';
+                    context.textAlign = "center"
+                    
+                    context.fillText('GAME OVER', canvas.width / 2, canvas.height / 6);
+
+                    context.textAlign = "center"
+                    context.fillStyle = '#e9cb36'
+                    context.font = '35px "Press Start 2P"';
+                    context.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 4);
+
+
+                    // Button properties
+                    const x = canvas.width / 2 -130, y = canvas.height / 3 -35, width = 260, height = 70, radius = 20;
+
+                    context.beginPath();
+                    context.roundRect(x, y, width, height, radius); // Draws the rounded path
+                    context.fillStyle = "#422bcd";
+                    context.fill();
+
+                    // Add text
+                    context.fillStyle = "white";
+                    context.font = '9px "Tiny5" bold';
+                    context.textAlign = "center";
+                    context.textBaseline = "middle";
+                    context.fillText("RETRY", canvas.width / 2, canvas.height / 3);
+                    
+                    context.textAlign = "center"
+                    context.fillStyle = '#38b6ff'
+                    context.font = '35px "Press Start 2P"';
+                    context.fillText("Leaderboard", canvas.width / 2, canvas.height / 9 *4);
+                                        
+
+                    window.refreshLeaderboard = async function() {
+                        const list = document.getElementById("leaderboard");
+                        list.innerHTML = "<li>Loading...</li>";
+                        
+                        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(9));
+                        
+                        const querySnapshot = await getDocs(q);
+                        list.innerHTML = "";
+                        let i =0
+                        querySnapshot.forEach((doc) => {
+                        i+=1
+                        const data = doc.data();
+                        list.innerHTML += `<li>${i}.                     ${data.name}: ${data.score}</li>`;
+                        });
+                    }
+                    window.submitScore = async function(playerName, score) {
+
+                        if(score === 0) return; 
+
+                        try {
+                        await addDoc(collection(db, "leaderboard"), {
+                            name: playerName,
+                            score: Number(score), 
+                            timestamp: Date.now()
+                        });
+                        console.log("Score submitted successfully");
+                        window.refreshLeaderboard();
+                        } catch (error) {
+                        console.error("Error adding score: ", error);
+                        alert("Could not save score. Check console.");
+                        }
+                    }
+                    const playerName = prompt("Game Over! Enter your name:");
+                    if (playerName) {
+                        window.submitScore(playerName, score);
+                    } else {
+                        window.refreshLeaderboard();
+                    }
+                    const overlay = document.getElementById('leaderboard-overlay');
+                    overlay.style.display = 'block';
+                    canvas.addEventListener('click', (event) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+                        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+                        const btnX = canvas.width / 2 - 130;
+                        const btnY = canvas.height / 3 - 35;
+                        const btnWidth = 260;
+                        const btnHeight = 70;
+
+                        if (playerLives <= 0 && 
+                            mouseX >= btnX && mouseX <= btnX + btnWidth &&
+                            mouseY >= btnY && mouseY <= btnY + btnHeight) {
+                            
+                            console.log("Retry button clicked!");
+                            resetGame();
+                        }
+                    });
                     cancelAnimationFrame(id)
+                    return
                 } else {
                     cancelAnimationFrame(id)
                     setTimeout(() => {
@@ -1337,10 +1468,113 @@ function animate(currentTime) {
                 isResetting = true
                 playerLives -= 1;
                 updateLivesUI()
+                context.fillStyle = 'white'
+                context.font = '1px "Press Start 2P"';
+                context.textAlign = "center"
                 
+                context.fillText('Loadiing font', canvas.width, canvas.height);
                 if (playerLives <= 0) {
-                    alert("Game Over! Final Score: " + score);
+                    document.getElementById('ui-layer').hidden = true
+                    const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+                    gradient.addColorStop(0, "black");
+                    gradient.addColorStop(0.3, "black");
+                    gradient.addColorStop(1, "#3533cd");  
+
+                    context.fillStyle = gradient;
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    context.fillStyle = 'white'
+                    context.font = '60px "Press Start 2P"';
+                    context.textAlign = "center"
+                    
+                    context.fillText('GAME OVER', canvas.width / 2, canvas.height / 6);
+
+                    context.textAlign = "center"
+                    context.fillStyle = '#e9cb36'
+                    context.font = '35px "Press Start 2P"';
+                    context.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 4);
+
+
+                    // Button properties
+                    const x = canvas.width / 2 -130, y = canvas.height / 3 -35, width = 260, height = 70, radius = 20;
+
+                    context.beginPath();
+                    context.roundRect(x, y, width, height, radius); // Draws the rounded path
+                    context.fillStyle = "#422bcd";
+                    context.fill();
+
+                    // Add text
+                    context.fillStyle = "white";
+                    context.font = '9px "Tiny5" bold';
+                    context.textAlign = "center";
+                    context.textBaseline = "middle";
+                    context.fillText("RETRY", canvas.width / 2, canvas.height / 3);
+                    
+                    context.textAlign = "center"
+                    context.fillStyle = '#38b6ff'
+                    context.font = '35px "Press Start 2P"';
+                    context.fillText("Leaderboard", canvas.width / 2, canvas.height / 9 *4);
+                                        
+
+                    window.refreshLeaderboard = async function() {
+                        const list = document.getElementById("leaderboard");
+                        list.innerHTML = "<li>Loading...</li>";
+                        
+                        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(9));
+                        
+                        const querySnapshot = await getDocs(q);
+                        list.innerHTML = "";
+                        let i =0
+                        querySnapshot.forEach((doc) => {
+                        i+=1
+                        const data = doc.data();
+                        list.innerHTML += `<li>${i}.                     ${data.name}: ${data.score}</li>`;
+                        });
+                    }
+                    window.submitScore = async function(playerName, score) {
+
+                        if(score === 0) return; 
+
+                        try {
+                        await addDoc(collection(db, "leaderboard"), {
+                            name: playerName,
+                            score: Number(score), 
+                            timestamp: Date.now()
+                        });
+                        console.log("Score submitted successfully");
+                        window.refreshLeaderboard();
+                        } catch (error) {
+                        console.error("Error adding score: ", error);
+                        alert("Could not save score. Check console.");
+                        }
+                    }
+                    const playerName = prompt("Game Over! Enter your name:");
+                    if (playerName) {
+                        window.submitScore(playerName, score);
+                    } else {
+                        window.refreshLeaderboard();
+                    }
+                    const overlay = document.getElementById('leaderboard-overlay');
+                    overlay.style.display = 'block';
+                    canvas.addEventListener('click', (event) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+                        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+                        const btnX = canvas.width / 2 - 130;
+                        const btnY = canvas.height / 3 - 35;
+                        const btnWidth = 260;
+                        const btnHeight = 70;
+
+                        if (playerLives <= 0 && 
+                            mouseX >= btnX && mouseX <= btnX + btnWidth &&
+                            mouseY >= btnY && mouseY <= btnY + btnHeight) {
+                            
+                            console.log("Retry button clicked!");
+                            resetGame();
+                        }
+                    });
                     cancelAnimationFrame(id)
+                    return
                 } else {
                     cancelAnimationFrame(id)
                     setTimeout(() => {
@@ -1418,7 +1652,6 @@ function animate(currentTime) {
             x = Math.floor(Math.random()*mapKeys.length)
             grid = maps[x]
             isnextleveling = true
-            fps+=8
             ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
             winkygrid = JSON.parse(JSON.stringify(maps2[x]));
             darkgrid = JSON.parse(JSON.stringify(maps2[x]));
@@ -1458,7 +1691,7 @@ function animate(currentTime) {
                         
                         red.position.x = 12 * blocksize + blocksize / 2;
                         red.position.y = 1 * blocksize + blocksize / 2;
-                        extra+=0.2
+                        fps+=5
                         // Give the player a tiny breather before the ghost attacks again
                         blinkymode = 'scatter';
                         blinkyscattercount = 0;
@@ -1496,6 +1729,7 @@ function animate(currentTime) {
 
         }
     }
+    
 }
 
 animate()
@@ -1918,22 +2152,30 @@ function getNextdarkMove(startX, startY, targetX, targetY, mapArray) {
                 }
             }
         }
-        return {x:obj.get(m)[0], y:obj.get(m)[1]} || { x: 0, y: 0 };
-    }
+        let result = obj.get(m);
+        if (result) {
+            return { x: result[0], y: result[1] };
+        }
+        return { x: 0, y: 0 };
+            }
 }
 
 
 
 
 function resetGame() {
+    isGameOver = true;
+    context.fillStyle = bgcolor
+    context.fillRect(0, 0, canvas.width, canvas.height)
     let mapKeys = Object.keys(maps);
     wallsarr = [];      // Clears old walls
     steroidsarr = [];   // Clears old dots
     steroids2arr = [];  // Clears old power pellets
     playerLives = 3;          // Don't forget to give them their lives back!
+    updateLivesUI()
     x = Math.floor(Math.random()*mapKeys.length)
     grid = maps[x]
-        isnextleveling = true
+    
         fps = 60
         score = 0
         ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
@@ -1963,9 +2205,6 @@ function resetGame() {
                     }
                 });
             });
-            cancelAnimationFrame(id)
-                    setTimeout(() => {
-                        
                         // Reset positions here so the player sees them jump back
                         player.position.x = blocksize - 16;
                         player.position.y = canvas.height / 2 - 8;
@@ -1999,38 +2238,23 @@ function resetGame() {
 
                         player.angle = 0
                         lastTime = performance.now(); 
-                        isnextleveling = false; // Unlock the game!
                         blinkytimer = 0;
                         winkytimer = 0;
                         darktimer = 0;
                         blinkyrunninghome = false;
                         winkyrunninghome = false;
                         darkrunninghome = false;
-                        id = requestAnimationFrame(animate);
-                        
-                    }, 250);
 
+    isResetting = false
     const overlay = document.getElementById('leaderboard-overlay');
     overlay.style.display = 'none';
     document.getElementById('ui-layer').hidden = false
-
+    setTimeout(() => {
+        lastTime = performance.now(); // Reset the "start" clock
+        accumulator = 1000/60;             // Clear any leftover "extra" time
+        console.log('accumulator: ',accumulator)
+        isGameOver = false;          // Allow the loop to proceed 
+        animate();          // 4. Start fresh
+    }, 250);
 }
 
-canvas.addEventListener('click', (event) => {
-                        const rect = canvas.getBoundingClientRect();
-                        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
-                        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
-
-                        const btnX = canvas.width / 2 - 130;
-                        const btnY = canvas.height / 3 - 35;
-                        const btnWidth = 260;
-                        const btnHeight = 70;
-
-                        if (playerLives <= 0 && 
-                            mouseX >= btnX && mouseX <= btnX + btnWidth &&
-                            mouseY >= btnY && mouseY <= btnY + btnHeight) {
-                            
-                            console.log("Retry button clicked!");
-                            resetGame();
-                        }
-                    });
