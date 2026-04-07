@@ -23,8 +23,8 @@ const analytics = getAnalytics(app);
 const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
-const font = new FontFace('PressStart2P', 'url(https://gstatic.com)');
-document.fonts.add(font);
+
+
 canvas.width = 1528
 let texts = []
 canvas.height = 698
@@ -503,6 +503,9 @@ class steroids{
 }
 const cheeseImg = new Image();
 cheeseImg.src = 'cheese.png';
+
+const skinsImg = new Image();
+skinsImg.src = 'skins.png';
 class steroids2{
     constructor({ position}){
         this.position = position
@@ -760,6 +763,8 @@ addEventListener("keydown", ({ key }) => {
         case 'arrowleft': desiredVelocity = { x: -4, y: 0 }; break;
         case 'arrowdown': desiredVelocity = { x: 0, y: 4 }; break;
         case 'arrowright': desiredVelocity = { x: 4, y: 0 }; break;
+
+        case 'escape': pausegame()
     }
 });
 function updateLivesUI() {
@@ -1163,7 +1168,7 @@ function animate(currentTime) {
 
 
                     // Button properties
-                    const x = canvas.width / 2 -130, y = canvas.height / 3 -35, width = 260, height = 70, radius = 20;
+                    const x = canvas.width / 2 -canvas.width*0.08, y = canvas.height / 3 -canvas.height*0.05, width = 260, height = 70, radius = 20;
 
                     context.beginPath();
                     context.roundRect(x, y, width, height, radius); // Draws the rounded path
@@ -1228,10 +1233,10 @@ function animate(currentTime) {
                         const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
                         const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
-                        const btnX = canvas.width / 2 - 130;
-                        const btnY = canvas.height / 3 - 35;
-                        const btnWidth = 260;
-                        const btnHeight = 70;
+                        const btnX = x;
+                        const btnY = y+height/2;
+                        const btnWidth = width;
+                        const btnHeight = height;
 
                         if (playerLives <= 0 && 
                             mouseX >= btnX && mouseX <= btnX + btnWidth &&
@@ -1328,7 +1333,7 @@ function animate(currentTime) {
 
 
                     // Button properties
-                    const x = canvas.width / 2 -130, y = canvas.height / 3 -35, width = 260, height = 70, radius = 20;
+                    const x = canvas.width / 2 -canvas.width*0.08, y = canvas.height / 3 -canvas.height*0.05, width = 260, height = 70, radius = 20;
 
                     context.beginPath();
                     context.roundRect(x, y, width, height, radius); // Draws the rounded path
@@ -1392,11 +1397,12 @@ function animate(currentTime) {
                         const rect = canvas.getBoundingClientRect();
                         const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
                         const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
-
-                        const btnX = canvas.width / 2 - 130;
-                        const btnY = canvas.height / 3 - 35;
-                        const btnWidth = 260;
-                        const btnHeight = 70;
+                        
+                        
+                        const btnX = x;
+                        const btnY = y+height/2;
+                        const btnWidth = width;
+                        const btnHeight = height;
 
                         if (playerLives <= 0 && 
                             mouseX >= btnX && mouseX <= btnX + btnWidth &&
@@ -1495,7 +1501,7 @@ function animate(currentTime) {
 
 
                     // Button properties
-                    const x = canvas.width / 2 -130, y = canvas.height / 3 -35, width = 260, height = 70, radius = 20;
+                    const x = canvas.width / 2 -canvas.width*0.08, y = canvas.height / 3 -canvas.height*0.05, width = 260, height = 70, radius = 20;
 
                     context.beginPath();
                     context.roundRect(x, y, width, height, radius); // Draws the rounded path
@@ -1560,10 +1566,10 @@ function animate(currentTime) {
                         const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
                         const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
-                        const btnX = canvas.width / 2 - 130;
-                        const btnY = canvas.height / 3 - 35;
-                        const btnWidth = 260;
-                        const btnHeight = 70;
+                        const btnX = x;
+                        const btnY = y+height/2;
+                        const btnWidth = width;
+                        const btnHeight = height;
 
                         if (playerLives <= 0 && 
                             mouseX >= btnX && mouseX <= btnX + btnWidth &&
@@ -1729,9 +1735,42 @@ function animate(currentTime) {
 
         }
     }
-    
-}
+    const x = (canvas.width*0.9)-canvas.width*(250/canvas.width)/2, y = canvas.height*(125/canvas.height)/20, width = canvas.width*(250/canvas.width), height = canvas.height*(125/canvas.height);
 
+
+    // Add text
+    context.fillStyle = "white";
+    context.font = 'bold 30px "Press Start 2p"';
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText("Pause||", x+width/2, y+height/2);
+
+    context.drawImage(
+        skinsImg, 
+        x+100, 
+        y+120, 
+        150,
+        150
+    );
+
+}
+canvas.addEventListener('click', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+    const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+    const btnWidth = 240
+    const btnHeight = 120
+    const btnX = (canvas.width*0.9)-btnWidth/2
+    const btnY = btnHeight/20
+    
+
+    if (
+        mouseX >= btnX && mouseX <= btnX + btnWidth &&
+        mouseY >= btnY && mouseY <= btnY + btnHeight) {
+            pausegame()
+        }
+    });
 animate()
 function getNextblinkyMove(startX, startY, targetX, targetY, mapArray) {
     // Scatter Mode logic
@@ -2213,7 +2252,6 @@ function resetGame() {
                         
                         red.position.x = 12 * blocksize + blocksize / 2;
                         red.position.y = 1 * blocksize + blocksize / 2;
-                        extra+=0.2
                         // Give the player a tiny breather before the ghost attacks again
                         blinkymode = 'scatter';
                         blinkyscattercount = 0;
@@ -2257,4 +2295,46 @@ function resetGame() {
         animate();          // 4. Start fresh
     }, 250);
 }
+const pauseItems = new Image();
+pauseItems.src = 'ui.png';
 
+function pausegame(){
+    cancelAnimationFrame(id)
+    const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, "rgba(0, 0, 0, 0.85)");
+    gradient.addColorStop(0.4, "rgba(0, 0, 0, 0.85)");
+    gradient.addColorStop(1, "rgba(54, 51, 205, 0.85)");  
+    context.fillStyle = gradient;
+    context.roundRect(canvas.width*0.15, canvas.height*0.1, canvas.width*0.6, canvas.height*0.8,20);
+    context.fill()
+
+    context.drawImage(
+        pauseItems, 
+        canvas.width*0.15, 
+        canvas.height*0.12, 
+        canvas.width*0.6,
+        canvas.height*0.8
+    );
+
+    canvas.addEventListener('click', (event) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+                        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+                        if (
+                            mouseX >= canvas.width*0.2 && mouseX <= canvas.width*0.5 &&
+                            mouseY >= canvas.height*0.65 && mouseY <= canvas.height*0.8) {
+
+
+                            resume()
+                        }
+                    });
+}
+function resume(){
+    lastTime = performance.now(); 
+    accumulator = 1000/60;          
+    animate();   
+}
+
+function skins(){
+    cancelAnimationFrame(id)
+}
