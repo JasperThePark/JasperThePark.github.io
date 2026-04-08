@@ -19,7 +19,7 @@ const analytics = getAnalytics(app);
 
 
 
-
+let paused = false
 const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
@@ -87,11 +87,11 @@ const maps2 = {
 }
 const mapKeys = Object.keys(maps)
 console.log(mapKeys)
-let x = Math.floor(Math.random()*mapKeys.length)
-grid = maps[x]
-let ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
-let winkygrid = JSON.parse(JSON.stringify(maps2[x]));
-let darkgrid = JSON.parse(JSON.stringify(maps2[x]));
+let idx = Math.floor(Math.random()*mapKeys.length)
+grid = maps[idx]
+let ghostgrid = JSON.parse(JSON.stringify(maps2[idx]));
+let winkygrid = JSON.parse(JSON.stringify(maps2[idx]));
+let darkgrid = JSON.parse(JSON.stringify(maps2[idx]));
 let isResetting = false;
 let blinkymode = 'scatter'
 let blinkyscattercount = 0
@@ -764,7 +764,7 @@ addEventListener("keydown", ({ key }) => {
         case 'arrowdown': desiredVelocity = { x: 0, y: 4 }; break;
         case 'arrowright': desiredVelocity = { x: 4, y: 0 }; break;
 
-        case 'escape': pausegame()
+        case 'escape': !paused ? pausegame() : resume()
     }
 });
 function updateLivesUI() {
@@ -1655,12 +1655,12 @@ function animate(currentTime) {
         }
         if(steroidsarr.length==0 && steroids2arr.length==0 &&!isnextleveling){
             console.log('resetting')
-            x = Math.floor(Math.random()*mapKeys.length)
-            grid = maps[x]
+            idx = Math.floor(Math.random()*mapKeys.length)
+            grid = maps[idx]
             isnextleveling = true
-            ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
-            winkygrid = JSON.parse(JSON.stringify(maps2[x]));
-            darkgrid = JSON.parse(JSON.stringify(maps2[x]));
+            ghostgrid = JSON.parse(JSON.stringify(maps2[idx]));
+            winkygrid = JSON.parse(JSON.stringify(maps2[idx]));
+            darkgrid = JSON.parse(JSON.stringify(maps2[idx]));
             currentLevel+=1
             grid.forEach((row, y) => {
                 row.forEach((symbol, x) => {
@@ -2212,14 +2212,14 @@ function resetGame() {
     steroids2arr = [];  // Clears old power pellets
     playerLives = 3;          // Don't forget to give them their lives back!
     updateLivesUI()
-    x = Math.floor(Math.random()*mapKeys.length)
-    grid = maps[x]
+    idx = Math.floor(Math.random()*mapKeys.length)
+    grid = maps[idx]
     
         fps = 60
         score = 0
-        ghostgrid = JSON.parse(JSON.stringify(maps2[x]));
-            winkygrid = JSON.parse(JSON.stringify(maps2[x]));
-            darkgrid = JSON.parse(JSON.stringify(maps2[x]));
+        ghostgrid = JSON.parse(JSON.stringify(maps2[idx]));
+            winkygrid = JSON.parse(JSON.stringify(maps2[idx]));
+            darkgrid = JSON.parse(JSON.stringify(maps2[idx]));
             currentLevel=1
             grid.forEach((row, y) => {
                 row.forEach((symbol, x) => {
@@ -2300,6 +2300,7 @@ pauseItems.src = 'ui.png';
 
 function pausegame(){
     cancelAnimationFrame(id)
+    paused = true
     const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
     gradient.addColorStop(0, "rgba(0, 0, 0, 0.85)");
     gradient.addColorStop(0.4, "rgba(0, 0, 0, 0.85)");
@@ -2324,14 +2325,14 @@ function pausegame(){
                             mouseX >= canvas.width*0.2 && mouseX <= canvas.width*0.5 &&
                             mouseY >= canvas.height*0.65 && mouseY <= canvas.height*0.8) {
 
-
                             resume()
                         }
                     });
 }
 function resume(){
     lastTime = performance.now(); 
-    accumulator = 1000/60;          
+    accumulator = 1000/60;         
+    paused = false 
     animate();   
 }
 
