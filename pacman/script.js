@@ -16,9 +16,7 @@ const app = initializeApp(firebaseConfig);
 let db = getFirestore(app)
 const analytics = getAnalytics(app);
 
-
-
-
+let skin = 'base'
 let paused = false
 const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
@@ -195,7 +193,7 @@ class ghost {
         this.position = position;
         this.velocity = velocity;
         this.name = name
-        this.radius = 24; // Scaled up even more for visibility
+        this.radius = 24; // Scaled up
         this.color = color;
         this.tailFrame = 0;
         this.angle = 0;
@@ -263,20 +261,20 @@ class ghost {
         context.fill();
 
         // --- INNER EARS ---
-        context.fillStyle = this.color6; // Inner Ear Color (Pink/Lighter)
+        context.fillStyle = this.color6; // Inner Ear Color 
 
         // Left Inner Ear (Tucked in)
         context.beginPath();
-        context.moveTo(-r * 0.75, -r * 0.4);   // Moved inward from -0.9, -0.2
-        context.lineTo(-r * 0.75, -r * 1.3);   // Pulled down from -1.6
-        context.lineTo(-r * 0.25, -r * 0.75);  // Moved inward from -0.1, -0.8
+        context.moveTo(-r * 0.75, -r * 0.4);  
+        context.lineTo(-r * 0.75, -r * 1.3);  
+        context.lineTo(-r * 0.25, -r * 0.75);  
         context.fill();
 
         // Right Inner Ear (Tucked in)
         context.beginPath();
-        context.moveTo(r * 0.75, -r * 0.4);    // Moved inward from 0.9, -0.2
-        context.lineTo(r * 0.75, -r * 1.3);    // Pulled down from -1.6
-        context.lineTo(r * 0.25, -r * 0.75);   // Moved inward from 0.1, -0.8
+        context.moveTo(r * 0.75, -r * 0.4);   
+        context.lineTo(r * 0.75, -r * 1.3);    
+        context.lineTo(r * 0.25, -r * 0.75);   
         context.fill();
 
         if (this.scared) {
@@ -553,87 +551,90 @@ class pacMan {
     }
     draw() {
         if((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run')){
-            context.save();
-            context.translate(this.position.x, this.position.y);
+            if(skin == 'base'){
+                context.save();
+                context.translate(this.position.x, this.position.y);
 
-            // Rotate based on movement direction
-            if (this.velocity.x > 0) this.angle = 0;
-            else if (this.velocity.x < 0) this.angle = Math.PI;
-            else if (this.velocity.y > 0) this.angle = Math.PI / 2;
-            else if (this.velocity.y < 0) this.angle = -Math.PI / 2;
-            context.rotate(this.angle);
+                // Rotate based on movement direction
+                if (this.velocity.x > 0) this.angle = 0;
+                else if (this.velocity.x < 0) this.angle = Math.PI;
+                else if (this.velocity.y > 0) this.angle = Math.PI / 2;
+                else if (this.velocity.y < 0) this.angle = -Math.PI / 2;
+                context.rotate(this.angle);
 
-            // 1. THE TAIL (Simple 5-Frame Cycle)
-            this.tailFrame += 0.12; // Adjust this number to change the wiggle speed
-            const frame = Math.floor(this.tailFrame % 5);
+                // 1. THE TAIL (Simple 5-Frame Cycle)
+                this.tailFrame += 0.12; // Adjust this number to change the wiggle speed
+                const frame = Math.floor(this.tailFrame % 5);
 
-            context.beginPath();
-            context.strokeStyle = "#888"; 
-            context.lineWidth = 4;
-            context.moveTo(-this.radius + 2, 0); 
+                context.beginPath();
+                context.strokeStyle = "#888"; 
+                context.lineWidth = 4;
+                context.moveTo(-this.radius + 2, 0); 
 
-            // Each frame slightly shifts the curve's points
-            if (frame === 0) context.bezierCurveTo(-this.radius-5, -20, -this.radius-30, 30, -this.radius-35, 0);
-            if (frame === 1) context.bezierCurveTo(-this.radius-5, -10, -this.radius-30, 20, -this.radius-35, 5);
-            if (frame === 2) context.bezierCurveTo(-this.radius-5, 0, -this.radius-30, 0, -this.radius-35, 0);
-            if (frame === 3) context.bezierCurveTo(-this.radius-5, 10, -this.radius-30, -20, -this.radius-35, -5);
-            if (frame === 4) context.bezierCurveTo(-this.radius-5, 20, -this.radius-30, -30, -this.radius-35, 0);
+                // Each frame slightly shifts the curve's points
+                if (frame === 0) context.bezierCurveTo(-this.radius-5, -20, -this.radius-30, 30, -this.radius-35, 0);
+                if (frame === 1) context.bezierCurveTo(-this.radius-5, -10, -this.radius-30, 20, -this.radius-35, 5);
+                if (frame === 2) context.bezierCurveTo(-this.radius-5, 0, -this.radius-30, 0, -this.radius-35, 0);
+                if (frame === 3) context.bezierCurveTo(-this.radius-5, 10, -this.radius-30, -20, -this.radius-35, -5);
+                if (frame === 4) context.bezierCurveTo(-this.radius-5, 20, -this.radius-30, -30, -this.radius-35, 0);
 
-            context.stroke();
+                context.stroke();
 
-            // 2. ears
-            const earSize = this.radius * 0.7; // BIG ears
-            context.lineWidth = 2;
+                // 2. ears
+                const earSize = this.radius * 0.7; // BIG ears
+                context.lineWidth = 2;
 
-            // Left Ear (Grey with Pink center)
-            context.beginPath();
-            context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize, 0, Math.PI * 2);
-            context.fillStyle = "grey";
-            context.fill();
-            context.beginPath();
-            context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
-            context.fillStyle = "#ff99cc"; // Brighter pink
-            context.fill();
+                // Left Ear (Grey with Pink center)
+                context.beginPath();
+                context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize, 0, Math.PI * 2);
+                context.fillStyle = "grey";
+                context.fill();
+                context.beginPath();
+                context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
+                context.fillStyle = "#ff99cc"; // Brighter pink
+                context.fill();
 
-            // Right Ear
-            context.beginPath();
-            context.arc(-this.radius * 0.8, this.radius * 0.7, earSize, 0, Math.PI * 2);
-            context.fillStyle = "grey";
-            context.fill();
-            context.beginPath();
-            context.arc(-this.radius * 0.8, this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
-            context.fillStyle = "#ff99cc";
-            context.fill();
+                // Right Ear
+                context.beginPath();
+                context.arc(-this.radius * 0.8, this.radius * 0.7, earSize, 0, Math.PI * 2);
+                context.fillStyle = "grey";
+                context.fill();
+                context.beginPath();
+                context.arc(-this.radius * 0.8, this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
+                context.fillStyle = "#ff99cc";
+                context.fill();
 
-            // 3. THE HEAD 
-            context.beginPath();
-            context.arc(0, 0, this.radius, 0, Math.PI * 2);
-            context.fillStyle = "grey";
-            context.fill();
+                // 3. THE HEAD 
+                context.beginPath();
+                context.arc(0, 0, this.radius, 0, Math.PI * 2);
+                context.fillStyle = "grey";
+                context.fill();
 
-            // 4. THE FACE (Bigger eyes and lower nose)
-            context.fillStyle = "white";
-            context.beginPath();
-            // Left Eye
-            context.arc(this.radius * 0.3, -this.radius * 0.3, 5, 0, Math.PI * 2);
-            // Right Eye
-            context.arc(this.radius * 0.3, this.radius * 0.3, 5, 0, Math.PI * 2);
-            context.fill();
+                // 4. THE FACE (Bigger eyes and lower nose)
+                context.fillStyle = "white";
+                context.beginPath();
+                // Left Eye
+                context.arc(this.radius * 0.3, -this.radius * 0.3, 5, 0, Math.PI * 2);
+                // Right Eye
+                context.arc(this.radius * 0.3, this.radius * 0.3, 5, 0, Math.PI * 2);
+                context.fill();
+                
+                // Pupils
+                context.fillStyle = "black";
+                context.beginPath();
+                context.arc(this.radius * 0.35, -this.radius * 0.3, 2, 0, Math.PI * 2);
+                context.arc(this.radius * 0.35, this.radius * 0.3, 2, 0, Math.PI * 2);
+                context.fill();
+
+                // Small Pink Nose at the tip
+                context.fillStyle = "#ff99cc";
+                context.beginPath();
+                context.arc(this.radius * 0.8, 0, 4, 0, Math.PI * 2);
+                context.fill();
+
+                context.restore();
+            }
             
-            // Pupils
-            context.fillStyle = "black";
-            context.beginPath();
-            context.arc(this.radius * 0.35, -this.radius * 0.3, 2, 0, Math.PI * 2);
-            context.arc(this.radius * 0.35, this.radius * 0.3, 2, 0, Math.PI * 2);
-            context.fill();
-
-            // Small Pink Nose at the tip
-            context.fillStyle = "#ff99cc";
-            context.beginPath();
-            context.arc(this.radius * 0.8, 0, 4, 0, Math.PI * 2);
-            context.fill();
-
-            context.restore();
         }else{
             context.drawImage(
                 mouseImg, 
@@ -861,8 +862,20 @@ let lastTime = 0;
 let accumulator = 0;
 let fps = 60
 let targetFPS = 1000/fps;
+let interval = 0
 
+let musics = ['megisss-simple-corporate-477081.mp3','echogatestudios-memories-of-a-simple-time-450676.mp3','geoffharvey-cute-creatures-150622.mp3','marmixer-light-year-265098.mp3']
+let curaudio = new Audio(musics[Math.floor(Math.random()*musics.length)])
+curaudio.volume=0.2
+let skinmusic = new Audio('skinmusic.mp3')
+skinmusic.volume = 0.5
+document.addEventListener('keydown', () => {
+    fadeinaudio(curaudio,0.2).catch(e => console.log('press to start'));
+}, { once: true });
+const pausemusic = new Audio('pause music arthurhale-cheerful-simple-music.mp3');
 function animate(currentTime) {
+
+
     pacmanspeed = 1+extra
     console.log(fps)
     if (isGameOver) return;
@@ -879,9 +892,14 @@ function animate(currentTime) {
     if(deltaTime>50)deltaTime=50
     lastTime = currentTime;
     accumulator += deltaTime;
+    
     while (accumulator >= targetFPS) {
         accumulator -= targetFPS;
-        
+        if(curaudio.ended){
+            curaudio.src = musics[Math.floor(Math.random() * musics.length)];
+            fadeinaudio(curaudio,0.2)
+        }
+
         if(blinkytimer>0){
             blinkytimer+=1
             if(blinkytimer>200){
@@ -1760,7 +1778,7 @@ canvas.addEventListener('click', (event) => {
     const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
     const btnWidth = 240
-    const btnHeight = 120
+    const btnHeight = 80
     const btnX = (canvas.width*0.9)-btnWidth/2
     const btnY = btnHeight/20
     
@@ -1768,9 +1786,33 @@ canvas.addEventListener('click', (event) => {
     if (
         mouseX >= btnX && mouseX <= btnX + btnWidth &&
         mouseY >= btnY && mouseY <= btnY + btnHeight) {
-            pausegame()
+            if(paused){
+                resume()
+            }else{
+                pausegame()
+            }
         }
-    });
+});
+canvas.addEventListener('click', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+    const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+    const btnWidth = 150
+    const btnHeight = 150
+    const btnX = (canvas.width*0.95)-btnWidth/2
+    const btnY = btnHeight/3*2.5
+    
+    if (
+        mouseX >= btnX && mouseX <= btnX + btnWidth &&
+        mouseY >= btnY && mouseY <= btnY + btnHeight) {
+            if(paused){
+                resume()
+            }else{
+                skins()
+            }
+        }
+});
 animate()
 function getNextblinkyMove(startX, startY, targetX, targetY, mapArray) {
     // Scatter Mode logic
@@ -2207,10 +2249,10 @@ function resetGame() {
     context.fillStyle = bgcolor
     context.fillRect(0, 0, canvas.width, canvas.height)
     let mapKeys = Object.keys(maps);
-    wallsarr = [];      // Clears old walls
-    steroidsarr = [];   // Clears old dots
-    steroids2arr = [];  // Clears old power pellets
-    playerLives = 3;          // Don't forget to give them their lives back!
+    wallsarr = [];     
+    steroidsarr = [];   
+    steroids2arr = [];  
+    playerLives = 3;         
     updateLivesUI()
     idx = Math.floor(Math.random()*mapKeys.length)
     grid = maps[idx]
@@ -2244,7 +2286,7 @@ function resetGame() {
                     }
                 });
             });
-                        // Reset positions here so the player sees them jump back
+                        // Reset 
                         player.position.x = blocksize - 16;
                         player.position.y = canvas.height / 2 - 8;
                         player.velocity = { x: 0, y: 0 };
@@ -2252,7 +2294,7 @@ function resetGame() {
                         
                         red.position.x = 12 * blocksize + blocksize / 2;
                         red.position.y = 1 * blocksize + blocksize / 2;
-                        // Give the player a tiny breather before the ghost attacks again
+                       
                         blinkymode = 'scatter';
                         blinkyscattercount = 0;
                         blinkylastmodechange = 0;
@@ -2260,7 +2302,7 @@ function resetGame() {
                         winky.position.x = 19 * blocksize + blocksize / 2;
                         winky.position.y = 1 * blocksize + blocksize / 2;
                         
-                        // Give the player a tiny breather before the ghost attacks again
+
                         winkymode = 'scatter';
                         winkyscattercount = 0;
                         winkylastmodechange = 0;
@@ -2268,7 +2310,7 @@ function resetGame() {
                         dark.position.x = 15*blocksize+blocksize/2
                         dark.position.y = 1*blocksize+blocksize/2
                         
-                        // Give the player a tiny breather before the ghost attacks again
+    
                         darkmode = 'scatter';
                         darkscattercount = 0;
                         darklastmodechange = 0;
@@ -2288,10 +2330,10 @@ function resetGame() {
     overlay.style.display = 'none';
     document.getElementById('ui-layer').hidden = false
     setTimeout(() => {
-        lastTime = performance.now(); // Reset the "start" clock
-        accumulator = 1000/60;             // Clear any leftover "extra" time
+        lastTime = performance.now(); // Reset
+        accumulator = 1000/60;            
         console.log('accumulator: ',accumulator)
-        isGameOver = false;          // Allow the loop to proceed 
+        isGameOver = false;        
         animate();          // 4. Start fresh
     }, 250);
 }
@@ -2308,7 +2350,10 @@ function pausegame(){
     context.fillStyle = gradient;
     context.roundRect(canvas.width*0.15, canvas.height*0.1, canvas.width*0.6, canvas.height*0.8,20);
     context.fill()
-
+    pausemusic.currentTime = 0
+    pausemusic.volume = 0.02
+    fadeaudio(curaudio)
+    fadeinaudio(pausemusic,0.02)
     context.drawImage(
         pauseItems, 
         canvas.width*0.15, 
@@ -2330,6 +2375,9 @@ function pausegame(){
                     });
 }
 function resume(){
+    fadeaudio(pausemusic)
+    fadeaudio(skinmusic)
+    fadeinaudio(curaudio,0.2)
     lastTime = performance.now(); 
     accumulator = 1000/60;         
     paused = false 
@@ -2338,4 +2386,44 @@ function resume(){
 
 function skins(){
     cancelAnimationFrame(id)
+    paused = true
+    fadeaudio(curaudio)
+    fadeinaudio(skinmusic,0.5)
+    const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, "rgba(0, 0, 0, 0.85)");
+    gradient.addColorStop(0.6, "rgba(54, 51, 205, 0.85)");
+    gradient.addColorStop(1, "rgba(54, 51, 205, 0.85)");  
+    context.fillStyle = gradient;
+    context.roundRect(canvas.width*0.15, canvas.height*0.1, canvas.width*0.6, canvas.height*0.8,20);
+    context.fill()
+}
+
+
+
+function fadeaudio(a){
+    const fadeinterval = setInterval(() => {
+        if(a.volume-0.05>0){
+            console.log('fading')
+            a.volume -= 0.05
+        }else{
+            a.volume = 0
+            a.pause()
+            clearInterval(fadeinterval)
+        }
+        
+    }, 50);
+}
+
+function fadeinaudio(a,goto){
+    a.volume = 0
+    const fadeinterval = setInterval(() => {
+        if(a.volume+0.05<goto){
+            a.volume += 0.05
+        }else{
+            a.volume = goto
+            a.play()
+            clearInterval(fadeinterval)
+        }
+        
+    }, 50);
 }
