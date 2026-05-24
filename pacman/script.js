@@ -538,6 +538,7 @@ class wall{
         this.draw()
     }
 }
+let clock = 0
 const mouseImg = new Image();
 mouseImg.src = 'mouse.png';
 class pacMan {
@@ -628,6 +629,92 @@ class pacMan {
 
                 // Small Pink Nose at the tip
                 context.fillStyle = "#ff99cc";
+                context.beginPath();
+                context.arc(this.radius * 0.8, 0, 4, 0, Math.PI * 2);
+                context.fill();
+
+                context.restore();
+            }else if(skin == 'glitch'){
+                clock = (clock+1)%100
+                context.save();
+                context.translate(this.position.x, this.position.y);
+
+                // Rotate based on movement direction
+                if (this.velocity.x > 0) this.angle = 0;
+                else if (this.velocity.x < 0) this.angle = Math.PI;
+                else if (this.velocity.y > 0) this.angle = Math.PI / 2;
+                else if (this.velocity.y < 0) this.angle = -Math.PI / 2;
+                context.rotate(this.angle);
+
+                // 1. THE TAIL (Simple 5-Frame Cycle)
+                this.tailFrame += 0.12; // Adjust this number to change the wiggle speed
+                const frame = Math.floor(this.tailFrame % 5);
+
+                context.beginPath();
+                if(clock<50){
+                    context.strokeStyle = "#0c0079"; 
+                }else{
+                    context.strokeStyle = "#20be00"; 
+                }
+                context.lineWidth = 4;
+                context.moveTo(-this.radius + 2, 0); 
+
+                // Each frame slightly shifts the curve's points
+                if (frame === 0) context.bezierCurveTo(-this.radius-5, -20, -this.radius-30, 30, -this.radius-35, 0);
+                if (frame === 1) context.bezierCurveTo(-this.radius-5, -10, -this.radius-30, 20, -this.radius-35, 5);
+                if (frame === 2) context.bezierCurveTo(-this.radius-5, 0, -this.radius-30, 0, -this.radius-35, 0);
+                if (frame === 3) context.bezierCurveTo(-this.radius-5, 10, -this.radius-30, -20, -this.radius-35, -5);
+                if (frame === 4) context.bezierCurveTo(-this.radius-5, 20, -this.radius-30, -30, -this.radius-35, 0);
+
+                context.stroke();
+
+                // 2. ears
+                const earSize = this.radius * 0.7; // BIG ears
+                context.lineWidth = 2;
+
+                // Left Ear (Grey with Pink center)
+                context.beginPath();
+                context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize, 0, Math.PI * 2);
+                context.fillStyle = "#0c0079";
+                context.fill();
+                context.beginPath();
+                context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
+                context.fillStyle = "#2bff00"; // Brighter pink
+                context.fill();
+
+                // Right Ear
+                context.beginPath();
+                context.arc(-this.radius * 0.8, this.radius * 0.7, earSize, 0, Math.PI * 2);
+                context.fillStyle = "#0c0079";
+                context.fill();
+                context.beginPath();
+                context.arc(-this.radius * 0.8, this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
+                context.fillStyle = "#2bff00";
+                context.fill();
+
+                // 3. THE HEAD 
+                context.beginPath();
+                context.arc(0, 0, this.radius, 0, Math.PI * 2);
+                context.fillStyle = "#0e008f";
+                context.fill();
+
+                // 4. THE FACE (Bigger eyes and lower nose)
+                context.fillStyle = "#2bff00";
+                context.beginPath();
+                // Left Eye
+                context.arc(this.radius * 0.3, -this.radius * 0.3, 5, 0, Math.PI * 2);
+                // Right Eye
+
+                context.fill();
+                
+                // Pupils
+                context.fillStyle = "#22cd00";
+                context.beginPath();
+                context.arc(this.radius * 0.35, this.radius * 0.3, 4, 0, Math.PI * 2);
+                context.fill();
+
+                // Small Pink Nose at the tip
+                context.fillStyle = "#0c9200";
                 context.beginPath();
                 context.arc(this.radius * 0.8, 0, 4, 0, Math.PI * 2);
                 context.fill();
@@ -1021,6 +1108,12 @@ function animate(currentTime) {
             if (false==circleCollision(player,steroids2arr[i])){
                 steroids2arr[i].draw()
             }else{
+                if(skin == 'base'){
+                    mouseImg.src = 'mouse.png';
+                }else if(skin=='glitch'){
+                    console.log('IT"S TRUE')
+                    mouseImg.src = 'glitchbuff-removebg-preview.png'
+                }
                 score+=100
                 if(!blinkyrunninghome && blinkytimer==0){
                     blinkymode = 'run'
@@ -2383,7 +2476,8 @@ function resume(){
     paused = false 
     animate();   
 }
-
+const skinspng = new Image()
+    skinspng.src = "pause_screen_items__1_-removebg-preview.png"
 function skins(){
     cancelAnimationFrame(id)
     paused = true
@@ -2396,6 +2490,38 @@ function skins(){
     context.fillStyle = gradient;
     context.roundRect(canvas.width*0.15, canvas.height*0.1, canvas.width*0.6, canvas.height*0.8,20);
     context.fill()
+    
+    context.drawImage(
+        skinspng, 
+        canvas.width*0.15, 
+        canvas.height*0, 
+        canvas.width*0.6,
+        canvas.height*0.8
+    );
+    canvas.addEventListener('click',(event)=>{
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+        if (
+                            mouseX >= canvas.width*0.2 && mouseX <= canvas.width*0.34 &&
+                            mouseY >= canvas.height*0.35 && mouseY <= canvas.height*0.6) {
+                            skin = 'base'
+                            resume()
+                            console.log('selected base')
+                        }
+    })
+    canvas.addEventListener('click',(event)=>{
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+        if (
+                            mouseX >= canvas.width*0.404 && mouseX <= canvas.width*0.52 &&
+                            mouseY >= canvas.height*0.35 && mouseY <= canvas.height*0.6) {
+                            skin = 'glitch'
+                            resume()
+                            console.log('selected glitch')
+                        }
+    })
 }
 
 
