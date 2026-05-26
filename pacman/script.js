@@ -18,6 +18,7 @@ const analytics = getAnalytics(app);
 
 let skin = 'base'
 let paused = false
+let gamestate = 'normal'
 const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
@@ -960,10 +961,20 @@ document.addEventListener('keydown', () => {
     fadeinaudio(curaudio,0.2).catch(e => console.log('press to start'));
 }, { once: true });
 const pausemusic = new Audio('pause music arthurhale-cheerful-simple-music.mp3');
+function specialfloor(x){
+    //round down to the nearest half
+    if(x<1){
+        return 0.25
+    }
+    return x-x%0.5
+}
 function animate(currentTime) {
 
-
-    pacmanspeed = 1+extra
+    if(skin=='base'){
+        pacmanspeed = 1+extra
+    }else if(skin=='glitch'){
+        pacmanspeed = extra + specialfloor(Math.random()*1.5)+0.5
+    }
     console.log(fps)
     if (isGameOver) return;
     if (!currentTime) currentTime = performance.now();
@@ -1247,7 +1258,7 @@ function animate(currentTime) {
 
         if (circleCollision(player, red)) {
             if(blinkymode!='run' &&!isResetting){
-                
+                gamestate = 'resetting'
                 isResetting = true
                 playerLives -= 1;
                 updateLivesUI()
@@ -1392,6 +1403,7 @@ function animate(currentTime) {
                         blinkyrunninghome = false;
                         winkyrunninghome = false;
                         isResetting = false; // Unlock the game!
+                        gamestate = 'normal'
                         id = requestAnimationFrame(animate);
                     }, 2500);
                     
@@ -1414,6 +1426,7 @@ function animate(currentTime) {
         if (circleCollision(player, winky)) {
             if(winkymode!='run'&&!isResetting){
                 isResetting = true
+                gamestate = 'resetting'
                 console.log(winkymode)
                 playerLives -= 1;
                 updateLivesUI()
@@ -1559,6 +1572,7 @@ function animate(currentTime) {
                         winkytimer = 0;
                         blinkyrunninghome = false;
                         winkyrunninghome = false;
+                        gamestate = 'normal'
                         id = requestAnimationFrame(animate);
                         
                     }, 2500);
@@ -1582,6 +1596,7 @@ function animate(currentTime) {
         }
         if (circleCollision(player, dark)) {
             if(darkmode!='run'&&!isResetting){
+                gamestate = 'resetting'
                 isResetting = true
                 playerLives -= 1;
                 updateLivesUI()
@@ -1731,6 +1746,7 @@ function animate(currentTime) {
                         blinkyrunninghome = false;
                         winkyrunninghome = false;
                         darkrunninghome = false
+                        gamestate = 'normal'
                         id = requestAnimationFrame(animate);
                         
                     }, 2500);
@@ -1887,6 +1903,9 @@ canvas.addEventListener('click', (event) => {
         }
 });
 canvas.addEventListener('click', (event) => {
+    if (gamestate === 'resetting' || gamestate === 'gameover'){
+        return
+    }
     const rect = canvas.getBoundingClientRect();
     const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
     const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
@@ -2338,6 +2357,8 @@ function getNextdarkMove(startX, startY, targetX, targetY, mapArray) {
 
 
 function resetGame() {
+    resume()
+    gamestate = 'normal'
     isGameOver = true;
     context.fillStyle = bgcolor
     context.fillRect(0, 0, canvas.width, canvas.height)
@@ -2434,6 +2455,7 @@ const pauseItems = new Image();
 pauseItems.src = 'ui.png';
 
 function pausegame(){
+    gamestate = 'paused'
     cancelAnimationFrame(id)
     paused = true
     const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
@@ -2455,7 +2477,25 @@ function pausegame(){
         canvas.height*0.8
     );
 
-    canvas.addEventListener('click', (event) => {
+    
+}
+function resume(){
+    console.log('resumed')
+    document.getElementById('ui-layer').hidden = false
+    fadeaudio(pausemusic)
+    fadeaudio(skinmusic)
+    gamestate = 'normal'
+    fadeinaudio(curaudio,0.2)
+    lastTime = performance.now(); 
+    accumulator = 1000/60;         
+    paused = false 
+    animate();   
+}
+canvas.addEventListener('click', (event) => {
+//pause screen -> resume button
+    if(gamestate !='paused'){
+            return
+        }
                         const rect = canvas.getBoundingClientRect();
                         const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
                         const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
@@ -2466,19 +2506,103 @@ function pausegame(){
                             resume()
                         }
                     });
-}
-function resume(){
-    fadeaudio(pausemusic)
-    fadeaudio(skinmusic)
-    fadeinaudio(curaudio,0.2)
-    lastTime = performance.now(); 
-    accumulator = 1000/60;         
-    paused = false 
-    animate();   
-}
+let baseimage = new Image()
+baseimage.src = 'choosing.png'
+let glitchimage = new Image()
+glitchimage.src = 'choosing-glitch.png'
+function drawBackgroundCover(img) {
+                                // Calculate scaling ratios
+                                const imgRatio = img.width / img.height;
+                                const canvasRatio = canvas.width / canvas.height;
+                                
+                                let renderWidth, renderHeight, xOffset, yOffset;
+
+                                if (canvasRatio > imgRatio) {
+                                    // Canvas is wider than the image
+                                    renderWidth = canvas.width;
+                                    renderHeight = canvas.width / imgRatio;
+                                    xOffset = 0;
+                                    yOffset = (canvas.height - renderHeight) / 2;
+                                } else {
+                                    // Canvas is taller than the image
+                                    renderWidth = canvas.height * imgRatio;
+                                    renderHeight = canvas.height;
+                                    xOffset = (canvas.width - renderWidth) / 2;
+                                    yOffset = 0;
+                                }
+
+                                context.drawImage(img, xOffset, yOffset, renderWidth, renderHeight);
+                            }
+canvas.addEventListener('click',(event)=>{
+//skins page -> base charcter selection
+        if(gamestate !='skins'){
+            return
+        }
+        console.log('basescreen')
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+        if (
+                            mouseX >= canvas.width*0.2 && mouseX <= canvas.width*0.34 &&
+                            mouseY >= canvas.height*0.35 && mouseY <= canvas.height*0.6) {
+                            document.getElementById('ui-layer').hidden = true
+                            drawBackgroundCover(baseimage);
+                            gamestate = 'choosingbase'
+                        }
+        if (
+                            mouseX >= canvas.width*0.404 && mouseX <= canvas.width*0.52 &&
+                            mouseY >= canvas.height*0.35 && mouseY <= canvas.height*0.6) {
+                            document.getElementById('ui-layer').hidden = true
+                            drawBackgroundCover(glitchimage);
+                            gamestate = 'choosingglitch'
+                        }
+    })
+canvas.addEventListener('click',(event)=>{
+    //choosing screen -> base -> select
+    if(gamestate !='choosingbase'){
+            return
+        }
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+        if (
+                            mouseX >= canvas.width*0.6 &&
+                            mouseY >= canvas.height*0.75) {
+                            skin = 'base'
+                            resume()
+                        }
+        if (
+                            mouseX <= canvas.width*0.5&&
+                            mouseY >= canvas.height*0.65) {
+                            animate();   
+                            skins()
+                        }
+})
+canvas.addEventListener('click',(event)=>{
+    //choosing screen -> base -> select
+    if(gamestate !='choosingglitch'){
+            return
+        }
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+        if (
+                            mouseX >= canvas.width*0.6 &&
+                            mouseY >= canvas.height*0.75) {
+                            skin = 'glitch'
+                            resume()
+                        }
+        if (
+                            mouseX <= canvas.width*0.5&&
+                            mouseY >= canvas.height*0.65) {
+                            animate();   
+                            skins()
+                        }
+})
 const skinspng = new Image()
     skinspng.src = "pause_screen_items__1_-removebg-preview.png"
 function skins(){
+    if(gamestate=='resetting')return
     cancelAnimationFrame(id)
     paused = true
     fadeaudio(curaudio)
@@ -2498,30 +2622,7 @@ function skins(){
         canvas.width*0.6,
         canvas.height*0.8
     );
-    canvas.addEventListener('click',(event)=>{
-        const rect = canvas.getBoundingClientRect()
-        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
-        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
-        if (
-                            mouseX >= canvas.width*0.2 && mouseX <= canvas.width*0.34 &&
-                            mouseY >= canvas.height*0.35 && mouseY <= canvas.height*0.6) {
-                            skin = 'base'
-                            resume()
-                            console.log('selected base')
-                        }
-    })
-    canvas.addEventListener('click',(event)=>{
-        const rect = canvas.getBoundingClientRect()
-        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
-        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
-        if (
-                            mouseX >= canvas.width*0.404 && mouseX <= canvas.width*0.52 &&
-                            mouseY >= canvas.height*0.35 && mouseY <= canvas.height*0.6) {
-                            skin = 'glitch'
-                            resume()
-                            console.log('selected glitch')
-                        }
-    })
+    gamestate = 'skins'
 }
 
 
