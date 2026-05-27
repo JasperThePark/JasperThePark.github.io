@@ -33,6 +33,7 @@ let score = 0
 let steroidsarr = []
 let steroids2arr = []
 let wallsarr = []
+let boundaries = []
 let holesarr = []
 let extra = 0
 let pacmanspeed = 1+extra
@@ -43,25 +44,26 @@ console.log((canvas.width/4*3)/2-blocksize*4.5)
 console.log(blocksize/2)
 let grid = []
 const maps = {
-    0:["1111111111111111111111111111111".split(""),
-       "1000000000015555555510000000001".split(""),
-       "1011111111011115111110111111101".split(""),
-       "1014000000000000000000000000101".split(""),
-       "1010101111111110111111111010101".split(""),
-       "1010101000000000100000041010101".split(""),
-       "1000101011111010101111101010001".split(""),
-       "1010101000000010101000101010101".split(""),
-       "1010101011111010001010101010101".split(""),
+    //0 = hall, 1 = wall, 3 = portal, 4 = big orb, 5 = ghost chamber, 9 = special bounds
+    0:["9999999999999999999999999999999".split(""),
+       "9000000000015555555510000000009".split(""),
+       "9011111111011115111110111111109".split(""),
+       "9014000000000000000000000000109".split(""),
+       "9010101111111110111111111010109".split(""),
+       "9010101000000000100000041010109".split(""),
+       "9000101011111010101111101010009".split(""),
+       "9010101000000010101000101010109".split(""),
+       "9010101011111010001010101010109".split(""),
        "3010000000001010100010101010103".split(""),
-       "1010101011101010101010101010101".split(""),
-       "1010101011101010101010101010101".split(""),
-       "1000101011101010000010101010001".split(""),
-       "1010101000041010101010101010101".split(""),
-       "1010101111111010101010101010101".split(""),
-       "1010000000000000000000000004101".split(""),
-       "1011110111111110111111110111101".split(""),
-       "1400000000000000000000000000001".split(""),
-       "1111111111111111111111111111111".split("")],
+       "9010101011101010101010101010109".split(""),
+       "9010101011101010101010101010109".split(""),
+       "9000101011101010000010101010009".split(""),
+       "9010101000041010101010101010109".split(""),
+       "9010101111111010101010101010109".split(""),
+       "9010000000000000000000000004109".split(""),
+       "9011110111111110111111110111109".split(""),
+       "9400000000000000000000000000009".split(""),
+       "9999999999999999999999999999999".split("")],
 }
 const maps2 = {
     0:["1111111111111111111111111111111".split(""),
@@ -511,6 +513,11 @@ class steroids2{
         this.radius = 14
     }
     draw() {
+        if(skin!='glitch'){
+            cheeseImg.src = 'cheese.png'
+        }else{
+            cheeseImg.src = 'glitcheese-removebg-preview.png'
+        }
         context.drawImage(
             cheeseImg, 
             this.position.x-20, 
@@ -542,6 +549,7 @@ class wall{
 let clock = 0
 const mouseImg = new Image();
 mouseImg.src = 'mouse.png';
+let glitchclock = 0
 class pacMan {
     constructor({ position, velocity, radius, angle = 0 }) {
         this.position = position
@@ -724,6 +732,19 @@ class pacMan {
             }
             
         }else{
+            if(skin=='glitch'){
+                glitchclock = (glitchclock+1)%240
+                    console.log(glitchclock)
+                    if(glitchclock>180){
+                        mouseImg.src = 'glitchmousebuff1-removebg-preview.png'
+                    }else if(glitchclock>120){
+                        mouseImg.src = 'glitchmousebuff1__1_-removebg-preview.png'
+                    }else if(glitchclock>60){
+                        mouseImg.src = 'glitchmousebuff1__2_-removebg-preview.png'
+                    }else{
+                        mouseImg.src = 'glitchbuff-removebg-preview.png'
+                    }
+            }
             context.drawImage(
                 mouseImg, 
                 this.position.x-36, 
@@ -909,7 +930,13 @@ grid.forEach((row, y) => {
                 width: blocksize,
                 height: blocksize
             }));
-        } else if (symbol === "4") {
+        }else if(symbol==="9"){
+            boundaries.push(new wall({
+                position: { x: centerX, y: centerY },
+                width: blocksize,
+                height: blocksize
+            }));
+        }else if (symbol === "4") {
             steroids2arr.push(new steroids2({
                 position: { x: centerX, y: centerY }
             }));
@@ -1025,6 +1052,9 @@ function animate(currentTime) {
         if(blinkymode=='run'){
             if(blinkyrunningtime>=540){
                 blinkymode = 'chase'
+                if(skin = 'glitch'){
+                    glitchUnstuck()
+                }
                 blinkyrunningtime = -1
             }
             blinkyrunningtime+=1
@@ -1106,6 +1136,9 @@ function animate(currentTime) {
         for (let i = wallsarr.length - 1; i >= 0; i--) {
             wallsarr[i].draw()
         }
+        for (let i = boundaries.length - 1; i >= 0; i--) {
+            boundaries[i].draw()
+        }
         for (let i = steroidsarr.length - 1; i >= 0; i--) {
             if (circleCollision(player, steroidsarr[i])) {
                 score += 10;
@@ -1122,7 +1155,7 @@ function animate(currentTime) {
                 if(skin == 'base'){
                     mouseImg.src = 'mouse.png';
                 }else if(skin=='glitch'){
-                    console.log('IT"S TRUE')
+                    glitchclock = (glitchclock+1)%100
                     mouseImg.src = 'glitchbuff-removebg-preview.png'
                 }
                 score+=100
@@ -1151,9 +1184,16 @@ function animate(currentTime) {
             },
             radius: player.radius
         };
-
-        for (let i = 0; i < wallsarr.length; i++) {
-            if (rectCircleCollision(wallsarr[i], desiredPacman)) {
+        if(((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run'))||skin!='glitch'){
+            for (let i = 0; i < wallsarr.length; i++) {
+                if (rectCircleCollision(wallsarr[i], desiredPacman)) {
+                    canTurn = false;
+                    break;
+                }
+            }
+        }
+        for (let i = 0; i < boundaries.length; i++) {
+            if (rectCircleCollision(boundaries[i], desiredPacman)) {
                 canTurn = false;
                 break;
             }
@@ -1169,7 +1209,37 @@ function animate(currentTime) {
         }
 
         // 2. PAC-MAN COLLISION & SNAPPING (Combined into one loop)
-        for (let i = 0; i < wallsarr.length; i++) {
+        if (((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run'))||skin!='glitch'){
+            for (let i = 0; i < wallsarr.length; i++) {
+                const futurePacman = {
+                    position: {
+                        x: player.position.x + player.velocity.x * pacmanspeed,
+                        y: player.position.y + player.velocity.y * pacmanspeed
+                    },
+                    radius: player.radius
+                };
+
+                if (rectCircleCollision(wallsarr[i], futurePacman)) {
+
+                    // SNAP TO EDGE: This clears the "stuck" pixels so turning works next frame
+                    if (player.velocity.x > 0) {
+                        player.position.x = wallsarr[i].position.x - (wallsarr[i].width / 2) - player.radius;
+                    } else if (player.velocity.x < 0) {
+                        player.position.x = wallsarr[i].position.x + (wallsarr[i].width / 2) + player.radius;
+                    }
+
+                    if (player.velocity.y > 0) {
+                        player.position.y = wallsarr[i].position.y - (wallsarr[i].height / 2) - player.radius;
+                    } else if (player.velocity.y < 0) {
+                        player.position.y = wallsarr[i].position.y + (wallsarr[i].height / 2) + player.radius;
+                    }
+
+                    player.velocity = { x: 0, y: 0 };
+                    break; 
+                }
+            }
+        }
+        for (let i = 0; i < boundaries.length; i++) {
             const futurePacman = {
                 position: {
                     x: player.position.x + player.velocity.x * pacmanspeed,
@@ -1178,19 +1248,19 @@ function animate(currentTime) {
                 radius: player.radius
             };
 
-            if (rectCircleCollision(wallsarr[i], futurePacman)) {
+            if (rectCircleCollision(boundaries[i], futurePacman)) {
 
                 // SNAP TO EDGE: This clears the "stuck" pixels so turning works next frame
                 if (player.velocity.x > 0) {
-                    player.position.x = wallsarr[i].position.x - (wallsarr[i].width / 2) - player.radius;
+                    player.position.x = boundaries[i].position.x - (boundaries[i].width / 2) - player.radius;
                 } else if (player.velocity.x < 0) {
-                    player.position.x = wallsarr[i].position.x + (wallsarr[i].width / 2) + player.radius;
+                    player.position.x = boundaries[i].position.x + (boundaries[i].width / 2) + player.radius;
                 }
 
                 if (player.velocity.y > 0) {
-                    player.position.y = wallsarr[i].position.y - (wallsarr[i].height / 2) - player.radius;
+                    player.position.y = boundaries[i].position.y - (boundaries[i].height / 2) - player.radius;
                 } else if (player.velocity.y < 0) {
-                    player.position.y = wallsarr[i].position.y + (wallsarr[i].height / 2) + player.radius;
+                    player.position.y = boundaries[i].position.y + (boundaries[i].height / 2) + player.radius;
                 }
 
                 player.velocity = { x: 0, y: 0 };
@@ -2363,7 +2433,8 @@ function resetGame() {
     context.fillStyle = bgcolor
     context.fillRect(0, 0, canvas.width, canvas.height)
     let mapKeys = Object.keys(maps);
-    wallsarr = [];     
+    wallsarr = [];
+    boundaries = []
     steroidsarr = [];   
     steroids2arr = [];  
     playerLives = 3;         
@@ -2385,6 +2456,12 @@ function resetGame() {
 
                     if (symbol === "1") {
                         wallsarr.push(new wall({
+                            position: { x: centerX, y: centerY },
+                            width: blocksize,
+                            height: blocksize
+                        }));
+                    }else if (symbol === "9") {
+                        boundaries.push(new wall({
                             position: { x: centerX, y: centerY },
                             width: blocksize,
                             height: blocksize
@@ -2653,4 +2730,68 @@ function fadeinaudio(a,goto){
         }
         
     }, 50);
+}
+
+
+function glitchUnstuck(){
+    let glitchposX = Math.floor(player.position.x / blocksize);
+    let glitchposY = Math.floor(player.position.y / blocksize);
+
+    if (glitchposY < 0 || glitchposY >= grid.length || glitchposX < 0 || glitchposX >= grid[0].length) {
+        glitchposX = Math.max(0, Math.min(glitchposX, grid[0].length - 1));
+        glitchposY = Math.max(0, Math.min(glitchposY, grid.length - 1));
+    }
+
+    let isinwall = false;
+    for (let i = 0; i < wallsarr.length; i++) {
+        if (rectCircleCollision(wallsarr[i], player)) {
+            isinwall = true;
+            break;
+        }
+    }
+    if (!isinwall) return;
+    let start = [glitchposX,glitchposY]
+    for(let radius = 0;radius<4;radius++){
+        start = [start[0]-1,start[1]-1]
+        for(let i =0;i<radius+2;i++){
+            start[0]+=1
+            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
+            if(grid[start[1]][start[0]]=='0'){
+                player.position.x = start[0]*blocksize+blocksize/2
+                player.position.y = start[1]*blocksize+blocksize/2
+                return
+            }
+        }
+        for(let i =0;i<radius+2;i++){
+            start[1]+=1
+            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
+            if(grid[start[1]][start[0]]=='0'){
+                player.position.x = start[0]*blocksize+blocksize/2
+                player.position.y = start[1]*blocksize+blocksize/2
+                return
+            }
+        }
+        for(let i =0;i<radius+2;i++){
+            start[0]-=1
+            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
+            if(grid[start[1]][start[0]]=='0'){
+                player.position.x = start[0]*blocksize+blocksize/2
+                player.position.y = start[1]*blocksize+blocksize/2
+                return
+            }
+        }
+        for(let i =0;i<radius+1;i++){
+            start[1]-=1
+            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
+            if(grid[start[1]][start[0]]=='0'){
+                player.position.x = start[0]*blocksize+blocksize/2
+                player.position.y = start[1]*blocksize+blocksize/2
+                return
+            }
+        }
+
+    }
+    //check by a radius of 4 blocks, first loop denotes the 4 radi
+    //the next for loops will loop about the nearby squares and if they are 0 then tp urself there and return
+    
 }
