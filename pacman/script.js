@@ -1052,7 +1052,7 @@ function animate(currentTime) {
         if(blinkymode=='run'){
             if(blinkyrunningtime>=540){
                 blinkymode = 'chase'
-                if(skin = 'glitch'){
+                if(skin == 'glitch'){
                     glitchUnstuck()
                 }
                 blinkyrunningtime = -1
@@ -2733,14 +2733,9 @@ function fadeinaudio(a,goto){
 }
 
 
-function glitchUnstuck(){
-    let glitchposX = Math.floor(player.position.x / blocksize);
-    let glitchposY = Math.floor(player.position.y / blocksize);
-
-    if (glitchposY < 0 || glitchposY >= grid.length || glitchposX < 0 || glitchposX >= grid[0].length) {
-        glitchposX = Math.max(0, Math.min(glitchposX, grid[0].length - 1));
-        glitchposY = Math.max(0, Math.min(glitchposY, grid.length - 1));
-    }
+function glitchUnstuck() {
+    player.velocity.x = 0;
+    player.velocity.y = 0;
 
     let isinwall = false;
     for (let i = 0; i < wallsarr.length; i++) {
@@ -2749,49 +2744,49 @@ function glitchUnstuck(){
             break;
         }
     }
-    if (!isinwall) return;
-    let start = [glitchposX,glitchposY]
-    for(let radius = 0;radius<4;radius++){
-        start = [start[0]-1,start[1]-1]
-        for(let i =0;i<radius+2;i++){
-            start[0]+=1
-            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
-            if(grid[start[1]][start[0]]=='0'){
-                player.position.x = start[0]*blocksize+blocksize/2
-                player.position.y = start[1]*blocksize+blocksize/2
-                return
-            }
-        }
-        for(let i =0;i<radius+2;i++){
-            start[1]+=1
-            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
-            if(grid[start[1]][start[0]]=='0'){
-                player.position.x = start[0]*blocksize+blocksize/2
-                player.position.y = start[1]*blocksize+blocksize/2
-                return
-            }
-        }
-        for(let i =0;i<radius+2;i++){
-            start[0]-=1
-            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
-            if(grid[start[1]][start[0]]=='0'){
-                player.position.x = start[0]*blocksize+blocksize/2
-                player.position.y = start[1]*blocksize+blocksize/2
-                return
-            }
-        }
-        for(let i =0;i<radius+1;i++){
-            start[1]-=1
-            if (start[1] < 0 ||start[1] >= grid.length ||start[0] < 0 ||start[0] >= grid[0].length) continue;
-            if(grid[start[1]][start[0]]=='0'){
-                player.position.x = start[0]*blocksize+blocksize/2
-                player.position.y = start[1]*blocksize+blocksize/2
-                return
-            }
+    if (!isinwall) {
+        console.log('not trapped');
+        return;
+    }
+    let startX = Math.round((player.position.x - blocksize / 2) / blocksize);
+    let startY = Math.round((player.position.y - blocksize / 2) / blocksize);
+
+    startX = Math.max(0, Math.min(startX, grid[0].length - 1));
+    startY = Math.max(0, Math.min(startY, grid.length - 1));
+
+    let queue = [[startX, startY]];
+    let visited = new Set();
+    visited.add(`${startX},${startY}`);
+
+    const directions = [
+        {x: 0, y: -1}, // Up
+        {x: 1, y: 0},  // Right
+        {x: 0, y: 1},  // Down
+        {x: -1, y: 0}  // Left
+    ];
+
+    while (queue.length > 0) {
+        let [cx, cy] = queue.shift();
+        if (grid[cy][cx] === '0') {
+            player.position.x = cx * blocksize + blocksize / 2;
+            player.position.y = cy * blocksize + blocksize / 2;
+            console.log(`Unstuck successfully to grid: ${cx}, ${cy}`);
+            return;
         }
 
+        for (let dir of directions) {
+            let nx = cx + dir.x;
+            let ny = cy + dir.y;
+            let key = `${nx},${ny}`;
+
+            if (ny >= 0 && ny < grid.length && nx >= 0 && nx < grid[0].length) {
+                if (!visited.has(key)) {
+                    visited.add(key);
+                    queue.push([nx, ny]);
+                }
+            }
+        }
     }
-    //check by a radius of 4 blocks, first loop denotes the 4 radi
-    //the next for loops will loop about the nearby squares and if they are 0 then tp urself there and return
     
+    console.log("No open spaces found nearby!");
 }
