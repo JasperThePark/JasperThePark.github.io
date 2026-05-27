@@ -174,10 +174,14 @@
         
         <ul id="leaderboard" style="list-style: none; padding: 0;"></ul>
     </div>
-    <div id="ui-layer">
+    <div id="ui-layer" hidden>
         <div id="levels" class="stat-label">Level: 0</div>
         <div id="lives" class="stat-label">Lives: </div>
         <div id='points' class="stat-label">Points: 0</div>
     </div>
 </div>
+<script>
+  window.currentGameState = 'INTRO'
+</script>
+<script src="open.js"></script>
 <script type="module" src="script.js"></script>

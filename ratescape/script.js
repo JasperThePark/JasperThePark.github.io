@@ -985,7 +985,7 @@ curaudio.volume=0.2
 let skinmusic = new Audio('skinmusic.mp3')
 skinmusic.volume = 0.5
 document.addEventListener('keydown', () => {
-    fadeinaudio(curaudio,0.2).catch(e => console.log('press to start'));
+    if(window.currentGameState!=='INTRO')fadeinaudio(curaudio,0.2).catch(e => console.log('press to start'));
 }, { once: true });
 const pausemusic = new Audio('pause music arthurhale-cheerful-simple-music.mp3');
 function specialfloor(x){
@@ -996,7 +996,12 @@ function specialfloor(x){
     return x-x%0.5
 }
 function animate(currentTime) {
-
+    if (window.currentGameState === "INTRO") {
+        requestAnimationFrame(animate);
+        return;
+    }
+    if(gamestate!='choosingbase' && gamestate!='choosingglitch')document.getElementById('ui-layer').hidden = false
+    
     if(skin=='base'){
         pacmanspeed = 1+extra
     }else if(skin=='glitch'){
@@ -1952,6 +1957,9 @@ function animate(currentTime) {
 
 }
 canvas.addEventListener('click', (event) => {
+    if (window.currentGameState === "INTRO") {
+        return;
+    }
     const rect = canvas.getBoundingClientRect();
     const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
     const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
@@ -1973,6 +1981,9 @@ canvas.addEventListener('click', (event) => {
         }
 });
 canvas.addEventListener('click', (event) => {
+    if (window.currentGameState === "INTRO") {
+        return;
+    }
     if (gamestate === 'resetting' || gamestate === 'gameover'){
         return
     }
