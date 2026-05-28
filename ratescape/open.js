@@ -482,8 +482,6 @@ function animate(currentTime1) {
         context.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    context.restore(); // Return canvas transforms completely back to pristine state
-
     // --- LOOP HANDOFF CONDITION ---
     if (fadeToBlackOpacity >= 1) {
         context.setTransform(1, 0, 0, 1, 0, 0);
