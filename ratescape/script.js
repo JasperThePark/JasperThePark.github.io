@@ -165,18 +165,20 @@ let isGameOver = false;
     }
     */
 class FloatingText {
-    constructor({ x, y, text }) {
+    constructor({ x, y, text,color }) {
         this.x = x;
         this.y = y;
         this.text = text;
         this.alpha = 1;        // opacity (1 = full, 0 = invisible)
         this.life = 60;        // frames (60 ≈ 1 second at 60 FPS)
+        this.color = color
     }
 
     draw() {
         context.save();
         context.globalAlpha = this.alpha;
         context.fillStyle = "white";
+        if(this.color)context.fillStyle = this.color
         context.font = "25px Anton";
         context.fillText(this.text, this.x, this.y);
         context.restore();
@@ -547,9 +549,24 @@ class wall{
     }
 }
 let clock = 0
-const mouseImg = new Image();
+let drumpanger = 0
+let mouseImg = new Image();
 mouseImg.src = 'mouse.png';
 let glitchclock = 0
+const drumpSources = {
+    idle: 'angry_guy-removebg-preview.png',
+    start: 'angry_guy1-removebg-preview.png',
+    start2: 'angry_guy2-removebg-preview.png',
+    start3: 'angry_guy3-removebg-preview.png',
+    start4: 'angry_guy4-removebg-preview.png',
+    start5: 'angry_guy5-removebg-preview.png',
+    start6: 'angry_guy6-removebg-preview.png',
+};
+const drumpImages = {};
+for (let item in drumpSources) {
+    drumpImages[item] = new Image();
+    drumpImages[item].src = drumpSources[item];
+}
 class pacMan {
     constructor({ position, velocity, radius, angle = 0 }) {
         this.position = position
@@ -729,6 +746,89 @@ class pacMan {
                 context.fill();
 
                 context.restore();
+            }else if(skin == 'drump'){
+                drumpanger = 0
+                context.save();
+                context.translate(this.position.x, this.position.y);
+
+                // Rotate based on movement direction
+                if (this.velocity.x > 0) this.angle = 0;
+                else if (this.velocity.x < 0) this.angle = Math.PI;
+                else if (this.velocity.y > 0) this.angle = Math.PI / 2;
+                else if (this.velocity.y < 0) this.angle = -Math.PI / 2;
+                context.rotate(this.angle);
+
+                // 1. THE TAIL (Simple 5-Frame Cycle)
+                this.tailFrame += 0.12; // Adjust this number to change the wiggle speed
+                const frame = Math.floor(this.tailFrame % 5);
+
+                context.beginPath();
+                context.strokeStyle = "#f4e61c"; 
+                context.lineWidth = 4;
+                context.moveTo(-this.radius + 2, 0); 
+
+                // Each frame slightly shifts the curve's points
+                if (frame === 0) context.bezierCurveTo(-this.radius-5, -20, -this.radius-30, 30, -this.radius-35, 0);
+                if (frame === 1) context.bezierCurveTo(-this.radius-5, -10, -this.radius-30, 20, -this.radius-35, 5);
+                if (frame === 2) context.bezierCurveTo(-this.radius-5, 0, -this.radius-30, 0, -this.radius-35, 0);
+                if (frame === 3) context.bezierCurveTo(-this.radius-5, 10, -this.radius-30, -20, -this.radius-35, -5);
+                if (frame === 4) context.bezierCurveTo(-this.radius-5, 20, -this.radius-30, -30, -this.radius-35, 0);
+
+                context.stroke();
+
+                // 2. ears
+                const earSize = this.radius * 0.7; // BIG ears
+                context.lineWidth = 2;
+
+                // Left Ear (yellow with orange center)
+                context.beginPath();
+                context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize, 0, Math.PI * 2);
+                context.fillStyle = "#fee04e";
+                context.fill();
+                context.beginPath();
+                context.arc(-this.radius * 0.8, -this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
+                context.fillStyle = "#f39851";
+                context.fill();
+
+                // Right Ear
+                context.beginPath();
+                context.arc(-this.radius * 0.8, this.radius * 0.7, earSize, 0, Math.PI * 2);
+                context.fillStyle = "#fee04e";
+                context.fill();
+                context.beginPath();
+                context.arc(-this.radius * 0.8, this.radius * 0.7, earSize * 0.6, 0, Math.PI * 2);
+                context.fillStyle = "#f39851";
+                context.fill();
+
+                // 3. THE HEAD 
+                context.beginPath();
+                context.arc(0, 0, this.radius, 0, Math.PI * 2);
+                context.fillStyle = "#f39851";
+                context.fill();
+
+                // 4. THE FACE (Bigger eyes and lower nose)
+                context.fillStyle = "white";
+                context.beginPath();
+                // Left Eye
+                context.arc(this.radius * 0.3, -this.radius * 0.3, 5, 0, Math.PI * 2);
+                // Right Eye
+                context.arc(this.radius * 0.3, this.radius * 0.3, 5, 0, Math.PI * 2);
+                context.fill();
+                
+                // Pupils
+                context.fillStyle = "#e6e6e6";
+                context.beginPath();
+                context.arc(this.radius * 0.35, -this.radius * 0.3, 2, 0, Math.PI * 2);
+                context.arc(this.radius * 0.35, this.radius * 0.3, 2, 0, Math.PI * 2);
+                context.fill();
+
+                // Small Pink Nose at the tip
+                context.fillStyle = "#fee04e";
+                context.beginPath();
+                context.arc(this.radius * 0.8, 0, 4, 0, Math.PI * 2);
+                context.fill();
+
+                context.restore();
             }
             
         }else{
@@ -744,6 +844,203 @@ class pacMan {
                     }else{
                         mouseImg.src = 'glitchbuff-removebg-preview.png'
                     }
+            }
+            if(skin=='drump'){
+                drumpanger+=1
+                if(drumpanger<78){
+                    mouseImg=drumpImages.idle
+                }else if(drumpanger<155){
+                    mouseImg=drumpImages.start
+                }else if(drumpanger<233){
+                    mouseImg=drumpImages.start2
+                }else if(drumpanger<311){
+                    mouseImg=drumpImages.start3
+                }else if(drumpanger<389){
+                    mouseImg=drumpImages.start4
+                }else if(drumpanger<467){
+                    mouseImg=drumpImages.start5
+                }else{
+                    mouseImg=drumpImages.start6
+                }
+
+                if(drumpanger==77){
+                    red.velocity.x = red.velocity.x/10*9
+                    red.velocity.y = red.velocity.y/10*9
+                    texts.push(new FloatingText({
+                        x: red.position.x,
+                        y: red.position.y,
+                        text: "-10%",
+                        color: 'red'
+                    }));
+                    winky.velocity.x = winky.velocity.x/10*9
+                    winky.velocity.y = winky.velocity.y/10*9
+                    texts.push(new FloatingText({
+                        x: winky.position.x,
+                        y: winky.position.y,
+                        text: "-10%",
+                        color: 'red'
+                    }));
+                    dark.velocity.x = dark.velocity.x/10*9
+                    dark.velocity.y = dark.velocity.y/10*9
+                    texts.push(new FloatingText({
+                        x: dark.position.x,
+                        y: dark.position.y,
+                        text: "-10%",
+                        color: 'red'
+                    }));
+                }else if(drumpanger==77*2){
+                    red.velocity.x = red.velocity.x/10*8
+                    red.velocity.y = red.velocity.y/10*8
+                    texts.push(new FloatingText({
+                        x: red.position.x,
+                        y: red.position.y,
+                        text: "-20%",
+                        color: 'red'
+                    }));
+                    winky.velocity.x = winky.velocity.x/10*8
+                    winky.velocity.y = winky.velocity.y/10*8
+                    texts.push(new FloatingText({
+                        x: winky.position.x,
+                        y: winky.position.y,
+                        text: "-20%",
+                        color: 'red'
+                    }));
+                    dark.velocity.x = dark.velocity.x/10*8
+                    dark.velocity.y = dark.velocity.y/10*8
+                    texts.push(new FloatingText({
+                        x: dark.position.x,
+                        y: dark.position.y,
+                        text: "-20%",
+                        color: 'red'
+                    }));
+                }else if(drumpanger==77*3){
+                    red.velocity.x = red.velocity.x/10*7
+                    red.velocity.y = red.velocity.y/10*7
+                    texts.push(new FloatingText({
+                        x: red.position.x,
+                        y: red.position.y,
+                        text: "-30%",
+                        color: 'red'
+                    }));
+                    winky.velocity.x = winky.velocity.x/10*7
+                    winky.velocity.y = winky.velocity.y/10*7
+                    texts.push(new FloatingText({
+                        x: winky.position.x,
+                        y: winky.position.y,
+                        text: "-30%",
+                        color: 'red'
+                    }));
+                    dark.velocity.x = dark.velocity.x/10*7
+                    dark.velocity.y = dark.velocity.y/10*7
+                    texts.push(new FloatingText({
+                        x: dark.position.x,
+                        y: dark.position.y,
+                        text: "-30%",
+                        color: 'red'
+                    }));
+                }else if(drumpanger==77*4){
+                    red.velocity.x = red.velocity.x/10*6
+                    red.velocity.y = red.velocity.y/10*6
+                    texts.push(new FloatingText({
+                        x: red.position.x,
+                        y: red.position.y,
+                        text: "-40%",
+                        color: 'red'
+                    }));
+                    winky.velocity.x = winky.velocity.x/10*6
+                    winky.velocity.y = winky.velocity.y/10*6
+                    texts.push(new FloatingText({
+                        x: winky.position.x,
+                        y: winky.position.y,
+                        text: "-40%",
+                        color: 'red'
+                    }));
+                    dark.velocity.x = dark.velocity.x/10*6
+                    dark.velocity.y = dark.velocity.y/10*6
+                    texts.push(new FloatingText({
+                        x: dark.position.x,
+                        y: dark.position.y,
+                        text: "-40%",
+                        color: 'red'
+                    }));
+                }else if(drumpanger==77*5){
+                    red.velocity.x = red.velocity.x/10*5
+                    red.velocity.y = red.velocity.y/10*5
+                    texts.push(new FloatingText({
+                        x: red.position.x,
+                        y: red.position.y,
+                        text: "-50%",
+                        color: 'red'
+                    }));
+                    winky.velocity.x = winky.velocity.x/10*5
+                    winky.velocity.y = winky.velocity.y/10*5
+                    texts.push(new FloatingText({
+                        x: winky.position.x,
+                        y: winky.position.y,
+                        text: "-50%",
+                        color: 'red'
+                    }));
+                    dark.velocity.x = dark.velocity.x/10*5
+                    dark.velocity.y = dark.velocity.y/10*5
+                    texts.push(new FloatingText({
+                        x: dark.position.x,
+                        y: dark.position.y,
+                        text: "-50%",
+                        color: 'red'
+                    }));
+                }else if(drumpanger==77*6){
+                    red.velocity.x = red.velocity.x/10*4
+                    red.velocity.y = red.velocity.y/10*4
+                    texts.push(new FloatingText({
+                        x: red.position.x,
+                        y: red.position.y,
+                        text: "-60%",
+                        color: 'red'
+                    }));
+                    winky.velocity.x = winky.velocity.x/10*4
+                    winky.velocity.y = winky.velocity.y/10*4
+                    texts.push(new FloatingText({
+                        x: winky.position.x,
+                        y: winky.position.y,
+                        text: "-60%",
+                        color: 'red'
+                    }));
+                    dark.velocity.x = dark.velocity.x/10*4
+                    dark.velocity.y = dark.velocity.y/10*4
+                    texts.push(new FloatingText({
+                        x: dark.position.x,
+                        y: dark.position.y,
+                        text: "-60%",
+                        color: 'red'
+                    }));
+                }else if(drumpanger==77*7){
+                    red.velocity.x = red.velocity.x/10*3
+                    red.velocity.y = red.velocity.y/10*3
+                    texts.push(new FloatingText({
+                        x: red.position.x,
+                        y: red.position.y,
+                        text: "-70%",
+                        color: 'red'
+                    }));
+                    winky.velocity.x = winky.velocity.x/10*3
+                    winky.velocity.y = winky.velocity.y/10*3
+                    texts.push(new FloatingText({
+                        x: winky.position.x,
+                        y: winky.position.y,
+                        text: "-70%",
+                        color: 'red'
+                    }));
+                    dark.velocity.x = dark.velocity.x/10*3
+                    dark.velocity.y = dark.velocity.y/10*3
+                    texts.push(new FloatingText({
+                        x: dark.position.x,
+                        y: dark.position.y,
+                        text: "-70%",
+                        color: 'red'
+                    }));
+                }
+
+                if(drumpanger==540)drumpanger = 0
             }
             context.drawImage(
                 mouseImg, 
@@ -1000,12 +1297,14 @@ function animate(currentTime) {
         requestAnimationFrame(animate);
         return;
     }
-    if(gamestate!='choosingbase' && gamestate!='choosingglitch')document.getElementById('ui-layer').hidden = false
+    if(gamestate!='choosingbase' && gamestate!='choosingglitch' && gamestate!='choosingdrump')document.getElementById('ui-layer').hidden = false
     
     if(skin=='base'){
         pacmanspeed = 1+extra
     }else if(skin=='glitch'){
         pacmanspeed = extra + specialfloor(Math.random()*1.5)+0.5
+    }else if(skin=='drump'){
+        pacmanspeed = 0.8+extra
     }
     console.log(fps)
     if (isGameOver) return;
@@ -1157,11 +1456,14 @@ function animate(currentTime) {
             if (false==circleCollision(player,steroids2arr[i])){
                 steroids2arr[i].draw()
             }else{
+
                 if(skin == 'base'){
                     mouseImg.src = 'mouse.png';
                 }else if(skin=='glitch'){
                     glitchclock = (glitchclock+1)%100
                     mouseImg.src = 'glitchbuff-removebg-preview.png'
+                }else if(skin=='drump'){
+                    drumpanger = 0
                 }
                 score+=100
                 if(!blinkyrunninghome && blinkytimer==0){
@@ -1290,6 +1592,9 @@ function animate(currentTime) {
             blinkylastmove = nextMove
             // 3. Set velocity based on speed (using 2 for smoothness)
             blinkySpeed = 3.5*(1+extra);
+            if(skin=='drump'){
+                blinkySpeed = blinkySpeed/10 * (10-Math.floor(drumpanger/77))
+            }
             red.velocity.x = nextMove.x * blinkySpeed;
             red.velocity.y = nextMove.y * blinkySpeed;
         }
@@ -1310,6 +1615,9 @@ function animate(currentTime) {
             winkylastmove = nextMove
             // 3. Set velocity based on speed (using 2 for smoothness)
             winkySpeed = 2.8*(1+extra);
+            if(skin=='drump'){
+                winkySpeed = winkySpeed/10 * (10-Math.floor(drumpanger/77))
+            }
             winky.velocity.x = nextMove.x * winkySpeed;
             winky.velocity.y = nextMove.y * winkySpeed;
         }
@@ -1327,6 +1635,9 @@ function animate(currentTime) {
             darklastmove = nextMove;
 
             darkSpeed = (Math.random() * 1.5 + 2.5)*(1+extra);
+            if(skin=='drump' &&drumpanger){
+                darkSpeed = darkSpeed/10 * (10-Math.floor(drumpanger/77))
+            }
             dark.velocity.x = nextMove.x * darkSpeed;
             dark.velocity.y = nextMove.y * darkSpeed;
         }
@@ -2598,6 +2909,8 @@ let baseimage = new Image()
 baseimage.src = 'choosing.png'
 let glitchimage = new Image()
 glitchimage.src = 'choosing-glitch.png'
+let drumpimage = new Image()
+drumpimage.src = 'choosing-drump.png'
 function drawBackgroundCover(img) {
                                 // Calculate scaling ratios
                                 const imgRatio = img.width / img.height;
@@ -2644,6 +2957,13 @@ canvas.addEventListener('click',(event)=>{
                             drawBackgroundCover(glitchimage);
                             gamestate = 'choosingglitch'
                         }
+        if (
+                            mouseX >= canvas.width*0.558 && mouseX <= canvas.width*0.7 &&
+                            mouseY >= canvas.height*0.35 && mouseY <= canvas.height*0.6) {
+                            document.getElementById('ui-layer').hidden = true
+                            drawBackgroundCover(drumpimage);
+                            gamestate = 'choosingdrump'
+                        }
     })
 canvas.addEventListener('click',(event)=>{
     //choosing screen -> base -> select
@@ -2678,6 +2998,27 @@ canvas.addEventListener('click',(event)=>{
                             mouseX >= canvas.width*0.6 &&
                             mouseY >= canvas.height*0.75) {
                             skin = 'glitch'
+                            resume()
+                        }
+        if (
+                            mouseX <= canvas.width*0.5&&
+                            mouseY >= canvas.height*0.65) {
+                            animate();   
+                            skins()
+                        }
+})
+canvas.addEventListener('click',(event)=>{
+    //choosing screen -> base -> select
+    if(gamestate !='choosingdrump'){
+            return
+        }
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+        if (
+                            mouseX >= canvas.width*0.6 &&
+                            mouseY >= canvas.height*0.75) {
+                            skin = 'drump'
                             resume()
                         }
         if (
@@ -2743,11 +3084,9 @@ function fadeinaudio(a,goto){
     }, 50);
 }
 
-
 function glitchUnstuck() {
     player.velocity.x = 0;
     player.velocity.y = 0;
-
     let isinwall = false;
     for (let i = 0; i < wallsarr.length; i++) {
         if (rectCircleCollision(wallsarr[i], player)) {
@@ -2755,13 +3094,14 @@ function glitchUnstuck() {
             break;
         }
     }
+    
     if (!isinwall) {
-        console.log('not trapped');
-        return;
+        return; 
     }
+
     let startX = Math.round((player.position.x - blocksize / 2) / blocksize);
     let startY = Math.round((player.position.y - blocksize / 2) / blocksize);
-
+    
     startX = Math.max(0, Math.min(startX, grid[0].length - 1));
     startY = Math.max(0, Math.min(startY, grid.length - 1));
 
@@ -2770,18 +3110,19 @@ function glitchUnstuck() {
     visited.add(`${startX},${startY}`);
 
     const directions = [
-        {x: 0, y: -1}, // Up
-        {x: 1, y: 0},  // Right
-        {x: 0, y: 1},  // Down
-        {x: -1, y: 0}  // Left
+        {x: 0, y: -1}, 
+        {x: 1, y: 0},  
+        {x: 0, y: 1},  
+        {x: -1, y: 0}  
     ];
 
     while (queue.length > 0) {
         let [cx, cy] = queue.shift();
-        if (grid[cy][cx] === '0') {
+        let tileType = grid[cy][cx];
+
+        if (tileType === '0' || tileType === '3' || tileType === '4') {
             player.position.x = cx * blocksize + blocksize / 2;
             player.position.y = cy * blocksize + blocksize / 2;
-            console.log(`Unstuck successfully to grid: ${cx}, ${cy}`);
             return;
         }
 
@@ -2798,6 +3139,4 @@ function glitchUnstuck() {
             }
         }
     }
-    
-    console.log("No open spaces found nearby!");
 }

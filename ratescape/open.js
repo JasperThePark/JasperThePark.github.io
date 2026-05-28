@@ -370,6 +370,7 @@ function handler(event){
 
 canvas.addEventListener('click', handler);
 document.addEventListener('keydown', () => {
+    if(window.currentGameState!='INTRO')return
     startmusic.play().catch(e => console.log('press to start'));
 }, { once: true });
 
