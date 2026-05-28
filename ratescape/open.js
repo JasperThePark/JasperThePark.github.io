@@ -11,8 +11,10 @@ const mouseImg = new Image();
 mouseImg.src = "slamdown-removebg-preview.png"; 
 
 let state = 'intro'; 
-let lastshiftx = Math.cos(this.angle) * (50 * 0.2);
-let lastshifty = Math.sin(this.angle) * (50 * 0.2);
+// Fix: 'this' is not valid in global space, using 0 fallback for initialization
+let lastshiftx = Math.cos(0) * (50 * 0.2);
+let lastshifty = Math.sin(0) * (50 * 0.2);
+
 class ghost {
     constructor({ name='blinky', position, velocity, color = 'yellow', color2 ='orange', color3 ='black', color4 = 'white', color5 ='#FFE066', color6 = '#ffd61d', color7 = 'orange' }) {
         this.position = position;
@@ -43,14 +45,14 @@ class ghost {
         context.scale(-1, 1);
 
         const r = this.radius;
-        let shiftX = lastshiftx
-        let shiftY = lastshifty
+        let shiftX = lastshiftx;
+        let shiftY = lastshifty;
         if(state!='start'){
             shiftX = Math.cos(this.angle) * (r * 0.2);
             shiftY = Math.sin(this.angle) * (r * 0.2);
         }
-        lastshiftx = shiftX
-        lastshifty = shiftY
+        lastshiftx = shiftX;
+        lastshifty = shiftY;
         if(state!=='start')this.tailFrame += 0.05;
         const frame = Math.floor(this.tailFrame % 5);
         
@@ -174,10 +176,9 @@ class ghost {
     update() {
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
-        
-        this.draw();
     }
 }
+
 class texteff{
     constructor(x,y,size,height,opacity,text){
         this.size = size
@@ -232,6 +233,7 @@ class texteff3{
         context.restore();
     }
 }
+
 class pacMan {
     constructor({ position, velocity, radius, angle = 0 }) {
         this.position = position;
@@ -328,43 +330,49 @@ class pacMan {
     update() {
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
-
-        this.draw();
     }
 }
-let startmusic = new Audio('startmusic.mp3')
-let camerashutter = new Audio('camerashutter.mp3')
-startmusic.volume = 0.8
-camerashutter.volume = 0.9
+
+const controller = new AbortController();
+let startmusic = new Audio('startmusic.mp3');
+let camerashutter = new Audio('camerashutter.mp3');
+startmusic.volume = 0.8;
+camerashutter.volume = 0.9;
+
 const player = new pacMan({
-    position: { x: canvas.width / 2, y: canvas.height -60 },
+    position: { x: canvas.width / 2, y: canvas.height - 60 },
     velocity: { x: 0, y: 0 },
     radius: 40, 
 });
-const press = new texteff(canvas.width/2-180,50,2000,400,1,'Press Any Key To Play Music')
-const title = new texteff2(canvas.width-550,canvas.height/3,2000,400,0,'Rat Escape')
-const play = new texteff3(canvas.width-370,canvas.height/3+100,2000,400,0,'‣START')
-let click = new Audio('clcik.mp3')
-click.currentTime = 1
-canvas.addEventListener('click', (event) => {
-    if(state!='start')return
+
+const press = new texteff(canvas.width/2-180,50,2000,400,1,'Press Any Key To Play Music');
+const title = new texteff2(canvas.width-550,canvas.height/3,2000,400,0,'Rat Escape');
+const play = new texteff3(canvas.width-370,canvas.height/3+100,2000,400,0,'‣START');
+let click = new Audio('clcik.mp3');
+click.currentTime = 1;
+
+function handler(event){
+    if(state!='start') return;
     const rect = canvas.getBoundingClientRect();
     const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
     const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
-    if (mouseX >= canvas.width-370&&
-            mouseX <= canvas.width-370+343 &&
-            mouseY >= canvas.height/3+30&& 
-            mouseY <= canvas.height/3+30+82) {
+    if (mouseX >= canvas.width-370 &&
+        mouseX <= canvas.width-370+343 &&
+        mouseY >= canvas.height/3+30 && 
+        mouseY <= canvas.height/3+30+82) {
         console.log("Start text clicked! Initiating game...");
-        startmusic.pause()
-        click.play()
-        state = 'begin'
+        startmusic.pause();
+        click.play();
+        state = 'begin';
     }
-});
+}
+
+canvas.addEventListener('click', handler);
 document.addEventListener('keydown', () => {
     startmusic.play().catch(e => console.log('press to start'));
 }, { once: true });
+
 const red = new ghost({
     position: {
         x: canvas.width - blocksize * 5, 
@@ -373,76 +381,120 @@ const red = new ghost({
     velocity: { x: 0, y: 0 },
     name: 'blinky',
 });
-let id;
-let laststate = 'intro'
+
+let id123;
+let laststate = 'intro';
 let cameraEffectTimer = 0;
-let fadeToBlackOpacity = 0; // transition cause idk how to fade whole screen
-function animate() {
+let fadeToBlackOpacity = 0; 
+let lastTime1 = 0;
+let accumulator1 = 0;
+let fps1 = 60;
+let targetFPS1 = 1000/fps1;
+
+function animate(currentTime1) {
+    if (!lastTime1) {
+        lastTime1 = currentTime1;
+        id123 = requestAnimationFrame(animate);
+        return;
+    }
+    
+    let deltaTime1 = currentTime1 - lastTime1;
+    if(deltaTime1 > 250) deltaTime1 = 250;
+    lastTime1 = currentTime1;
+    accumulator1 += deltaTime1;
+    
+    // --- PHYSICS & GAME LOGIC STEP (Runs inside fixed steps) ---
+    while (accumulator1 >= targetFPS1) {
+        accumulator1 -= targetFPS1;
+        
+        if (cameraEffectTimer > 0) {
+            cameraEffectTimer -= 3;
+        }
+        if (cameraEffectTimer < 0) {
+            cameraEffectTimer = 0;
+        }
+        
+        player.update();
+        red.update();
+        
+        if(red.position.x > -200 && state == 'intro'){
+            player.velocity.x = -5;
+            red.velocity.x = -5;
+        } else if(state != 'start' && state != 'begin'){
+            state = 'payback';
+            red.scared = true;
+            red.velocity.x = 9;
+            player.velocity.x = 10;
+            player.velocity.y = 5;
+        }
+        
+        if(state != laststate && state == 'payback'){
+            camerashutter.currentTime = 0.5;
+            camerashutter.play();
+            player.position.y = -290;
+            player.position.x = -600;
+        }
+        
+        if(state == 'payback' && red.position.x >= canvas.width / 3){
+            player.velocity.x = 0;
+            player.velocity.y = 0;
+            red.velocity.y = 0;
+            red.velocity.x = 0;
+            state = 'start';
+            cameraEffectTimer = 13;
+        }
+        
+        if(state == 'start'){
+            play.opacity += 0.01;
+            title.opacity += 0.01;
+        }
+        
+        laststate = state;
+        
+        if (state === 'begin') {
+            fadeToBlackOpacity += 0.05; 
+            if (fadeToBlackOpacity > 1) fadeToBlackOpacity = 1; 
+        }
+    }
+    
+    // --- RENDER GRAPHICS STEP (Runs once per screen refresh) ---
+    context.save(); // Protect the main canvas matrix configuration
+
     if (cameraEffectTimer > 0) {
-        cameraEffectTimer-=3;
         context.translate(-20, -12);
-        context.globalAlpha = 1/(cameraEffectTimer/4); 
+        context.globalAlpha = 1 / (cameraEffectTimer / 4); 
         context.scale(1.02, 1.02); 
-    }
-    if(cameraEffectTimer<0){
-        context.globalAlpha = 1
-        cameraEffectTimer = 0
-    }
-    context.fillStyle = bgcolor;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    press.draw()
-    title.draw()
-    play.draw()
-    player.update();
-    red.update();
-    if(red.position.x>-200 && state=='intro' ){
-        player.velocity.x=-5
-        red.velocity.x=-5
-    }else if(state!='start' && state!='begin'){
-        state = 'payback'
-        console.log('peak')
-        red.scared = true
-        red.velocity.x=9
-        player.velocity.x = 10
-        player.velocity.y = 5
-    }if(state!=laststate&&state=='payback'){
-        camerashutter.currentTime = 0.5
-        camerashutter.play()
-        console.log('launched')
-        player.position.y = -290
-        player.position.x = -600
-    }
-    if(state=='payback'&&red.position.x>=canvas.width/3){
-        player.velocity.x = 0
-        player.velocity.y = 0
-        red.velocity.y = 0
-        red.velocity.x = 0
-        state = 'start'
-        console.log('HHEHEHEHE')
-        cameraEffectTimer = 13;
-    }
-    if(state=='start'){
-        play.opacity+=0.01
-        title.opacity+=0.01
-    }
-    laststate = state
-    if (state === 'begin') {
-        fadeToBlackOpacity += 0.05; 
-        if (fadeToBlackOpacity > 1) fadeToBlackOpacity = 1; 
+    } else {
+        context.globalAlpha = 1;
     }
 
+    context.fillStyle = bgcolor;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    
+    press.draw();
+    title.draw();
+    play.draw();
+    player.draw();
+    red.draw();
 
     if (fadeToBlackOpacity > 0) {
         context.fillStyle = `rgba(0, 0, 0, ${fadeToBlackOpacity})`;
         context.fillRect(0, 0, canvas.width, canvas.height);
     }
-        
-    id = requestAnimationFrame(animate);
-    if(fadeToBlackOpacity>=1){
+
+    context.restore(); // Return canvas transforms completely back to pristine state
+
+    // --- LOOP HANDOFF CONDITION ---
+    if (fadeToBlackOpacity >= 1) {
         context.setTransform(1, 0, 0, 1, 0, 0);
-        cancelAnimationFrame(id)
-        window.currentGameState = 'game'
+        cancelAnimationFrame(id123);
+        canvas.removeEventListener('click', handler); // Fixed: your handler was on 'click', not 'keydown'
+        window.currentGameState = 'game';
+        return; // Break the execution chain so requestAnimationFrame doesn't re-queue
     }
+    
+    id123 = requestAnimationFrame(animate);
 }
 
-animate();
+// Start the intro loop
+id123 = requestAnimationFrame(animate);
