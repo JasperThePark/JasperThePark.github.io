@@ -515,10 +515,12 @@ class steroids2{
         this.radius = 14
     }
     draw() {
-        if(skin!='glitch'){
+        if(skin=='base'){
             cheeseImg.src = 'cheese.png'
-        }else{
+        }else if(skin=='gltich'){
             cheeseImg.src = 'glitcheese-removebg-preview.png'
+        }else{
+            cheeseImg.src = 'fast_food-removebg-preview.png'
         }
         context.drawImage(
             cheeseImg, 
@@ -550,9 +552,10 @@ class wall{
 }
 let clock = 0
 let drumpanger = 0
+let drumpslowstart = 0
+let glitchclock = 0
 let mouseImg = new Image();
 mouseImg.src = 'mouse.png';
-let glitchclock = 0
 const drumpSources = {
     idle: 'angry_guy-removebg-preview.png',
     start: 'angry_guy1-removebg-preview.png',
@@ -1304,7 +1307,8 @@ function animate(currentTime) {
     }else if(skin=='glitch'){
         pacmanspeed = extra + specialfloor(Math.random()*1.5)+0.5
     }else if(skin=='drump'){
-        pacmanspeed = 0.8+extra
+        pacmanspeed = 1+extra
+        if(drumpslowstart<2)pacmanspeed = 0.75+extra
     }
     console.log(fps)
     if (isGameOver) return;
@@ -1464,6 +1468,7 @@ function animate(currentTime) {
                     mouseImg.src = 'glitchbuff-removebg-preview.png'
                 }else if(skin=='drump'){
                     drumpanger = 0
+                    drumpslowstart+=1
                 }
                 score+=100
                 if(!blinkyrunninghome && blinkytimer==0){
@@ -2751,6 +2756,10 @@ function getNextdarkMove(startX, startY, targetX, targetY, mapArray) {
 function resetGame() {
     resume()
     gamestate = 'normal'
+    clock = 0
+    drumpanger = 0
+    drumpslowstart = 0
+    glitchclock = 0
     isGameOver = true;
     context.fillStyle = bgcolor
     context.fillRect(0, 0, canvas.width, canvas.height)
@@ -3121,8 +3130,9 @@ function glitchUnstuck() {
         let tileType = grid[cy][cx];
 
         if (tileType === '0' || tileType === '3' || tileType === '4') {
-            player.position.x = cx * blocksize + blocksize / 2;
-            player.position.y = cy * blocksize + blocksize / 2;
+            console.log(cx,cy)
+            player.position.x = cx * blocksize +blocksize/2
+            player.position.y = cy * blocksize +blocksize/2
             return;
         }
 
