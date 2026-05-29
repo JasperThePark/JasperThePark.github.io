@@ -517,7 +517,7 @@ class steroids2{
     draw() {
         if(skin=='base'){
             cheeseImg.src = 'cheese.png'
-        }else if(skin=='gltich'){
+        }else if(skin=='glitch'){
             cheeseImg.src = 'glitcheese-removebg-preview.png'
         }else{
             cheeseImg.src = 'fast_food-removebg-preview.png'
@@ -565,10 +565,21 @@ const drumpSources = {
     start5: 'angry_guy5-removebg-preview.png',
     start6: 'angry_guy6-removebg-preview.png',
 };
+const glitchSources = {
+    pos1:'glitchmousebuff1-removebg-preview.png',
+    pos2:'glitchmousebuff1__1_-removebg-preview.png',
+    pos3:'glitchmousebuff1__2_-removebg-preview.png',
+    pos4:'glitchbuff-removebg-preview.png'
+}
 const drumpImages = {};
 for (let item in drumpSources) {
     drumpImages[item] = new Image();
     drumpImages[item].src = drumpSources[item];
+}
+const glitchImages = {};
+for (let item in glitchSources) {
+    glitchImages[item] = new Image();
+    glitchImages[item].src = glitchSources[item];
 }
 class pacMan {
     constructor({ position, velocity, radius, angle = 0 }) {
@@ -839,13 +850,13 @@ class pacMan {
                 glitchclock = (glitchclock+1)%240
                     console.log(glitchclock)
                     if(glitchclock>180){
-                        mouseImg.src = 'glitchmousebuff1-removebg-preview.png'
+                        mouseImg = glitchImages.pos1
                     }else if(glitchclock>120){
-                        mouseImg.src = 'glitchmousebuff1__1_-removebg-preview.png'
+                        mouseImg = glitchImages.pos2
                     }else if(glitchclock>60){
-                        mouseImg.src = 'glitchmousebuff1__2_-removebg-preview.png'
+                        mouseImg = glitchImages.pos3
                     }else{
-                        mouseImg.src = 'glitchbuff-removebg-preview.png'
+                        mouseImg = glitchImages.pos4
                     }
             }
             if(skin=='drump'){
