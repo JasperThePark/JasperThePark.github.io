@@ -23,7 +23,6 @@ const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
 
-
 canvas.width = 1528
 let texts = []
 canvas.height = 698
@@ -1188,6 +1187,38 @@ addEventListener("keydown", ({ key }) => {
         case 'escape': !paused ? pausegame() : resume()
     }
 });
+let touchStartX = 0
+let touchStartY = 0
+
+canvas.addEventListener("touchstart", (e) => {
+    touchStartX = e.touches[0].clientX
+    touchStartY = e.touches[0].clientY
+}, { passive: true })
+
+canvas.addEventListener("touchend", (e) => {
+    if (window.currentGameState === "INTRO") return
+
+    let diffX = e.changedTouches[0].clientX - touchStartX
+    let diffY = e.changedTouches[0].clientY - touchStartY
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (Math.abs(diffX) > 30) {
+            if (diffX > 0) {
+                desiredVelocity = { x: 4, y: 0 }
+            } else {
+                desiredVelocity = { x: -4, y: 0 }
+            }
+        }
+    } else {
+        if (Math.abs(diffY) > 30) {
+            if (diffY > 0) {
+                desiredVelocity = { x: 0, y: 4 }
+            } else {
+                desiredVelocity = { x: 0, y: -4 }
+            }
+        }
+    }
+}, { passive: true })
 function updateLivesUI() {
     const livesContainer = document.getElementById('lives');
     livesContainer.innerHTML = 'Lives: '; // Clear current icons
@@ -1290,14 +1321,18 @@ let fps = 60
 let targetFPS = 1000/fps;
 let interval = 0
 
-let musics = ['megisss-simple-corporate-477081.mp3','echogatestudios-memories-of-a-simple-time-450676.mp3','geoffharvey-cute-creatures-150622.mp3','marmixer-light-year-265098.mp3']
+let musics = ['megisss-simple-corporate-477081.mp3','echogatestudios-memories-of-a-simple-time-450676.mp3','geoffharvey-cute-creatures-150622.mp3','marmixer-light-year-265098.mp3','stardust.mp3','bluelikeu.mp3']
 let curaudio = new Audio(musics[Math.floor(Math.random()*musics.length)])
 curaudio.volume=0.2
 let skinmusic = new Audio('skinmusic.mp3')
 skinmusic.volume = 0.5
+let haventplayedmusic = true
 document.addEventListener('keydown', () => {
-    if(window.currentGameState!=='INTRO')fadeinaudio(curaudio,0.2).catch(e => console.log('press to start'));
-}, { once: true });
+    if(window.currentGameState!='INTRO'&&haventplayedmusic){
+        haventplayedmusic = false
+        fadeinaudio(curaudio,0.2).catch(e => console.log('press to start'));
+    }
+});
 const pausemusic = new Audio('pause music arthurhale-cheerful-simple-music.mp3');
 function specialfloor(x){
     //round down to the nearest half
@@ -2253,9 +2288,10 @@ function animate(currentTime) {
                         lastTime = performance.now(); 
                         isnextleveling = false; // Unlock the game!
                         blinkytimer = 0;
-                        winkytimer = 0;
+                        winkytimer = 0
                         darktimer = 0;
                         blinkyrunninghome = false;
+                        drumpslowstart = 0
                         winkyrunninghome = false;
                         darkrunninghome = false;
                         id = requestAnimationFrame(animate);

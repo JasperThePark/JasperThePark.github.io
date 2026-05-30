@@ -2,6 +2,7 @@
   <title>Rat Escape</title>
   <link rel="shortcut icon" type="image/x-icon" href="cheese.png" />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&family=Tiny5&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 </header>
 <style>
   html, body {
@@ -27,8 +28,34 @@
       
     /* This ensures the image doesn't get stretched or squished */
     object-fit: contain; 
+    /* Prevents pulling the screen, double-tap zoom, and pinch-zoom */
+    touch-action: none; 
+    
+    /* Disables the annoying grey highlight box that appears on mobile when you tap things */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    
+    /* Prevents users from accidentally selecting text/images if they hold down on the screen */
+    user-select: none;
+    -webkit-user-select: none;
   }
-
+  @media screen and (max-width: 767px) and (orientation: portrait) {
+    body::before {
+        content: "Please rotate your device to play!";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: black;
+        color: white;
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Anton', sans-serif;
+        font-size: 24px;
+    }
+    canvas {
+        display: none; /* Hide the game until they flip the phone */
+    }
+}
   #ui-layer {
     position: absolute;  /* Lock to the container */
     bottom: 20px;        /* Distance from bottom */

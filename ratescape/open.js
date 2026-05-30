@@ -364,7 +364,7 @@ function handler(event){
         console.log("Start text clicked! Initiating game...");
         startmusic.pause();
         click.play();
-        state = 'begin';
+        state = 'instructions';
     }
 }
 
@@ -387,10 +387,21 @@ let id123;
 let laststate = 'intro';
 let cameraEffectTimer = 0;
 let fadeToBlackOpacity = 0; 
+let fadeToBlackOpacity2 = 0;
+let instructiontimer = 0
 let lastTime1 = 0;
 let accumulator1 = 0;
 let fps1 = 60;
 let targetFPS1 = 1000/fps1;
+let instruction = new Image()
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+if (isMobile) {
+    instruction.src = 'instructionPHONE.png'; 
+} else {
+    // Load your standard keyboard layout image
+    instruction.src = 'instruction.png'; 
+}
 
 function animate(currentTime1) {
     if (!lastTime1) {
@@ -421,7 +432,7 @@ function animate(currentTime1) {
         if(red.position.x > -200 && state == 'intro'){
             player.velocity.x = -5;
             red.velocity.x = -5;
-        } else if(state != 'start' && state != 'begin'){
+        } else if(state != 'start' && state != 'begin' && state!='instructions'){
             state = 'payback';
             red.scared = true;
             red.velocity.x = 9;
@@ -451,7 +462,10 @@ function animate(currentTime1) {
         }
         
         laststate = state;
-        
+        if(state=='instructions'){
+            fadeToBlackOpacity2+=0.05;
+            if(fadeToBlackOpacity2>1)fadeToBlackOpacity2 =1
+        }
         if (state === 'begin') {
             fadeToBlackOpacity += 0.05; 
             if (fadeToBlackOpacity > 1) fadeToBlackOpacity = 1; 
@@ -478,6 +492,16 @@ function animate(currentTime1) {
     player.draw();
     red.draw();
 
+    if (fadeToBlackOpacity2 > 0) {
+        context.fillStyle = `rgba(0, 0, 0, 1)`;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.globalAlpha = fadeToBlackOpacity2
+        context.drawImage(instruction, 0, 0, canvas.width, canvas.height);
+        instructiontimer+=1
+    }
+    if(instructiontimer>220){
+        state = 'begin'
+    }
     if (fadeToBlackOpacity > 0) {
         context.fillStyle = `rgba(0, 0, 0, ${fadeToBlackOpacity})`;
         context.fillRect(0, 0, canvas.width, canvas.height);
