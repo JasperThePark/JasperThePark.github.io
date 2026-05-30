@@ -365,6 +365,11 @@ function handler(event){
         startmusic.pause();
         click.play();
         state = 'instructions';
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(e => console.log(e))
+        } else if (document.documentElement.webkitRequestFullscreen) { /* Safari support */
+            document.documentElement.webkitRequestFullscreen()
+        }
     }
 }
 

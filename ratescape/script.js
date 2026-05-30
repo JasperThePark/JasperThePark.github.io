@@ -1342,6 +1342,7 @@ function specialfloor(x){
     return x-x%0.5
 }
 function animate(currentTime) {
+    
     if (window.currentGameState === "INTRO") {
         requestAnimationFrame(animate);
         return;
@@ -1746,12 +1747,12 @@ function animate(currentTime) {
                     context.font = '35px "Press Start 2P"';
                     context.fillText("Leaderboard", canvas.width / 2, canvas.height / 9 *4);
                                         
-
+                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
                     window.refreshLeaderboard = async function() {
                         const list = document.getElementById("leaderboard");
-                        list.innerHTML = "<li>Loading...</li>";
-                        
                         const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(9));
+                        list.innerHTML = "<li>Loading...</li>";
+                        if(isMobile)q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(3))
                         
                         const querySnapshot = await getDocs(q);
                         list.innerHTML = "";
