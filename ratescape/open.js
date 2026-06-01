@@ -336,8 +336,10 @@ class pacMan {
 const controller = new AbortController();
 let startmusic = new Audio('startmusic.mp3');
 let camerashutter = new Audio('camerashutter.mp3');
+let click = new Audio('clcik.mp3');
 startmusic.volume = 0.8;
 camerashutter.volume = 0.9;
+click.currentTime = 1;
 
 const player = new pacMan({
     position: { x: canvas.width / 2, y: canvas.height - 60 },
@@ -348,9 +350,27 @@ const player = new pacMan({
 const press = new texteff(canvas.width/2-180,50,2000,400,1,'Press Any Key To Play Music');
 const title = new texteff2(canvas.width-550,canvas.height/3,2000,400,0,'Rat Escape');
 const play = new texteff3(canvas.width-370,canvas.height/3+100,2000,400,0,'‣START');
-let click = new Audio('clcik.mp3');
-click.currentTime = 1;
 
+// Group intro sounds so they can be muted externally by the gameplay manager
+window.introSounds = [startmusic, camerashutter, click];
+
+// Helper to safely check if CrazyGames is currently muted
+function isPlatformMuted() {
+    // 1. Check if the root SDK object exists
+    if (!window.CrazyGames?.SDK) {
+        return false;
+    }
+
+    // 2. Wrap the .game or .settings access in a try/catch block 
+    // to absorb errors if the SDK isn't fully ready yet.
+    try {
+        return window.CrazyGames.SDK.game?.settings?.muteAudio || false;
+    } catch (e) {
+        // If the SDK screams "Not initialized yet!", catch it silently 
+        // and assume the game isn't muted.
+        return false;
+    }
+}
 function handler(event){
     if(state!='start') return;
     const rect = canvas.getBoundingClientRect();
@@ -363,7 +383,11 @@ function handler(event){
         mouseY <= canvas.height/3+30+82) {
         console.log("Start text clicked! Initiating game...");
         startmusic.pause();
+        
+        // FIX: Verify platform mute configuration before click execution
+        click.muted = isPlatformMuted();
         click.play();
+        
         state = 'instructions';
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(e => console.log(e))
@@ -375,7 +399,10 @@ function handler(event){
 
 canvas.addEventListener('click', handler);
 document.addEventListener('keydown', () => {
-    if(window.currentGameState!='INTRO')return
+    if(window.currentGameState!='INTRO') return
+    
+    // FIX: Verify platform mute status before running the introductory loop music
+    startmusic.muted = isPlatformMuted();
     startmusic.play().catch(e => console.log('press to start'));
 }, { once: true });
 
@@ -447,6 +474,7 @@ function animate(currentTime1) {
         
         if(state != laststate && state == 'payback'){
             camerashutter.currentTime = 0.5;
+            camerashutter.muted = isPlatformMuted();
             camerashutter.play();
             player.position.y = -290;
             player.position.x = -600;
@@ -516,9 +544,9 @@ function animate(currentTime1) {
     if (fadeToBlackOpacity >= 1) {
         context.setTransform(1, 0, 0, 1, 0, 0);
         cancelAnimationFrame(id123);
-        canvas.removeEventListener('click', handler); // Fixed: your handler was on 'click', not 'keydown'
+        canvas.removeEventListener('click', handler); 
         window.currentGameState = 'game';
-        return; // Break the execution chain so requestAnimationFrame doesn't re-queue
+        return; 
     }
     
     id123 = requestAnimationFrame(animate);

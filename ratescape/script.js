@@ -16,12 +16,64 @@ const app = initializeApp(firebaseConfig);
 let db = getFirestore(app)
 const analytics = getAnalytics(app);
 
+
+
+//CRAZY GAMES STUFF
+window.setGameMute = function(shouldMute) {
+    // 1. Check if your background music exists, then mute/unmute it
+    if (typeof curaudio !== 'undefined' && curaudio) {
+        curaudio.muted = shouldMute;
+    }
+    
+    // 2. Check if your skin shop music exists, then mute/unmute it
+    if (typeof skinmusic !== 'undefined' && skinmusic) {
+        skinmusic.muted = shouldMute;
+    }
+
+    // 3. Keep the intro screen sounds muted if they are lingering
+    if (window.introSounds && Array.isArray(window.introSounds)) {
+        window.introSounds.forEach(sound => {
+            if (sound) sound.muted = shouldMute;
+        });
+    }
+};
+
+// This loop safely waits in the background until CrazyGames is ready.
+// Once ready, it checks if the player already muted the site.
+function initCrazyGamesSDK() {
+    if (window.CrazyGames && window.CrazyGames.SDK) {
+        const crazySDK = window.CrazyGames.SDK;
+
+        try {
+            // Check if the user loaded the page with mute already turned on
+            const initialMute = crazySDK.game?.settings?.muteAudio || false;
+            window.setGameMute(initialMute);
+
+            // Listen for if they click the mute button while playing
+            crazySDK.game.addSettingsChangeListener((newSettings) => {
+                if (newSettings && newSettings.hasOwnProperty('muteAudio')) {
+                    window.setGameMute(newSettings.muteAudio);
+                }
+            });
+            
+            console.log("CrazyGames Audio successfully connected!");
+        } catch (error) {
+            // SDK is still loading up, try again in a split second
+            setTimeout(initCrazyGamesSDK, 100);
+        }
+    } else {
+        // SDK script isn't on the page yet, try again in a split second
+        setTimeout(initCrazyGamesSDK, 100);
+    }
+}
+initCrazyGamesSDK();
 let skin = 'base'
 let paused = false
 let gamestate = 'normal'
 const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
+let justteleported = false
 
 canvas.width = 1528
 let texts = []
@@ -1356,6 +1408,30 @@ function animate(currentTime) {
     }else if(skin=='drump'){
         pacmanspeed = 1+extra
         if(drumpslowstart<2)pacmanspeed = 0.75+extra
+    }  
+    if(skin=='glitch'){
+        if (player.velocity.x === 0 && player.velocity.y === 0) {
+            // Only check for stuckness if the glitch power is NOT actively running
+            const isPhasingActive = (skin === 'glitch' && (blinkymode === 'run' || winkymode === 'run' || darkmode === 'run'));
+            
+            if (!isPhasingActive) {
+                let directlyInWall = false;
+                
+                // Check if the player is fused inside any wall block
+                for (let i = 0; i < wallsarr.length; i++) {
+                    if (rectCircleCollision(wallsarr[i], player)) {
+                        directlyInWall = true;
+                        break;
+                    }
+                }
+                
+                // If they are trapped with zero velocity, rescue them immediately!
+                if (directlyInWall) {
+                    console.warn("Emergency Stuck Detector triggered! Rescuing player...");
+                    glitchUnstuck();
+                }
+            }
+        }
     }
     console.log(fps)
     if (isGameOver) return;
@@ -1407,9 +1483,7 @@ function animate(currentTime) {
         if(blinkymode=='run'){
             if(blinkyrunningtime>=540){
                 blinkymode = 'chase'
-                if(skin == 'glitch'){
-                    glitchUnstuck()
-                }
+                glitchUnstuck()
                 blinkyrunningtime = -1
             }
             blinkyrunningtime+=1
@@ -1444,6 +1518,7 @@ function animate(currentTime) {
         if(winkymode=='run'){
             if(winkyrunningtime>=540){
                 winkymode = 'chase'
+                glitchUnstuck()
                 winkyrunningtime = -1
             }
             winkyrunningtime+=1
@@ -1477,6 +1552,7 @@ function animate(currentTime) {
         if(darkmode=='run'){
             if(darkrunningtime>=540){
                 darkmode = 'chase'
+                glitchUnstuck()
                 darkrunningtime = -1
             }
             darkrunningtime+=1
@@ -1534,6 +1610,21 @@ function animate(currentTime) {
                 steroids2arr.splice(i,1)
             }
         }
+        if (typeof wasPhasingActive === 'undefined') {
+            var wasPhasingActive = false;
+        }
+
+        const isAnyGhostRunning = (blinkymode === 'run' || winkymode === 'run' || darkmode === 'run');
+        const isBuffActive = (skin === 'glitch' && isAnyGhostRunning);
+
+        if (wasPhasingActive && !isBuffActive) {
+            console.log("BUFF ENDED DETECTED: Running safety unstuck check!");
+            glitchUnstuck(); 
+        }
+
+        wasPhasingActive = isBuffActive;
+
+
         // 1. TURNING LOGIC (Check if we CAN turn)
         let canTurn = true;
         const desiredPacman = {
@@ -1543,33 +1634,63 @@ function animate(currentTime) {
             },
             radius: player.radius
         };
-        if(((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run'))||skin!='glitch'){
-            for (let i = 0; i < wallsarr.length; i++) {
-                if (rectCircleCollision(wallsarr[i], desiredPacman)) {
+        if(!justteleported){
+            if(((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run'))||skin!='glitch'){
+                for (let i = 0; i < wallsarr.length; i++) {
+                    if (rectCircleCollision(wallsarr[i], desiredPacman)) {
+                        canTurn = false;
+                        break;
+                    }
+                }
+            }
+            for (let i = 0; i < boundaries.length; i++) {
+                if (rectCircleCollision(boundaries[i], desiredPacman)) {
                     canTurn = false;
                     break;
                 }
             }
-        }
-        for (let i = 0; i < boundaries.length; i++) {
-            if (rectCircleCollision(boundaries[i], desiredPacman)) {
-                canTurn = false;
-                break;
+
+            if (canTurn && (desiredVelocity.x !== 0 || desiredVelocity.y !== 0)) {
+                player.velocity = desiredVelocity;
+                // Update angles for drawing
+                if (player.velocity.x > 0) player.angle = 0;
+                if (player.velocity.x < 0) player.angle = Math.PI;
+                if (player.velocity.y > 0) player.angle = Math.PI / 2;
+                if (player.velocity.y < 0) player.angle = -Math.PI / 2;
             }
-        }
 
-        if (canTurn && (desiredVelocity.x !== 0 || desiredVelocity.y !== 0)) {
-            player.velocity = desiredVelocity;
-            // Update angles for drawing
-            if (player.velocity.x > 0) player.angle = 0;
-            if (player.velocity.x < 0) player.angle = Math.PI;
-            if (player.velocity.y > 0) player.angle = Math.PI / 2;
-            if (player.velocity.y < 0) player.angle = -Math.PI / 2;
-        }
+            // 2. PAC-MAN COLLISION & SNAPPING (Combined into one loop)
+            if (((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run'))||skin!='glitch'){
+                for (let i = 0; i < wallsarr.length; i++) {
+                    const futurePacman = {
+                        position: {
+                            x: player.position.x + player.velocity.x * pacmanspeed,
+                            y: player.position.y + player.velocity.y * pacmanspeed
+                        },
+                        radius: player.radius
+                    };
 
-        // 2. PAC-MAN COLLISION & SNAPPING (Combined into one loop)
-        if (((blinkymode!='run')&&(winkymode!='run')&&(darkmode!='run'))||skin!='glitch'){
-            for (let i = 0; i < wallsarr.length; i++) {
+                    if (rectCircleCollision(wallsarr[i], futurePacman)) {
+
+                        // SNAP TO EDGE: This clears the "stuck" pixels so turning works next frame
+                        if (player.velocity.x > 0) {
+                            player.position.x = wallsarr[i].position.x - (wallsarr[i].width / 2) - player.radius;
+                        } else if (player.velocity.x < 0) {
+                            player.position.x = wallsarr[i].position.x + (wallsarr[i].width / 2) + player.radius;
+                        }
+
+                        if (player.velocity.y > 0) {
+                            player.position.y = wallsarr[i].position.y - (wallsarr[i].height / 2) - player.radius;
+                        } else if (player.velocity.y < 0) {
+                            player.position.y = wallsarr[i].position.y + (wallsarr[i].height / 2) + player.radius;
+                        }
+
+                        player.velocity = { x: 0, y: 0 };
+                        break; 
+                    }
+                }
+            }
+            for (let i = 0; i < boundaries.length; i++) {
                 const futurePacman = {
                     position: {
                         x: player.position.x + player.velocity.x * pacmanspeed,
@@ -1578,19 +1699,19 @@ function animate(currentTime) {
                     radius: player.radius
                 };
 
-                if (rectCircleCollision(wallsarr[i], futurePacman)) {
+                if (rectCircleCollision(boundaries[i], futurePacman)) {
 
                     // SNAP TO EDGE: This clears the "stuck" pixels so turning works next frame
                     if (player.velocity.x > 0) {
-                        player.position.x = wallsarr[i].position.x - (wallsarr[i].width / 2) - player.radius;
+                        player.position.x = boundaries[i].position.x - (boundaries[i].width / 2) - player.radius;
                     } else if (player.velocity.x < 0) {
-                        player.position.x = wallsarr[i].position.x + (wallsarr[i].width / 2) + player.radius;
+                        player.position.x = boundaries[i].position.x + (boundaries[i].width / 2) + player.radius;
                     }
 
                     if (player.velocity.y > 0) {
-                        player.position.y = wallsarr[i].position.y - (wallsarr[i].height / 2) - player.radius;
+                        player.position.y = boundaries[i].position.y - (boundaries[i].height / 2) - player.radius;
                     } else if (player.velocity.y < 0) {
-                        player.position.y = wallsarr[i].position.y + (wallsarr[i].height / 2) + player.radius;
+                        player.position.y = boundaries[i].position.y + (boundaries[i].height / 2) + player.radius;
                     }
 
                     player.velocity = { x: 0, y: 0 };
@@ -1598,35 +1719,6 @@ function animate(currentTime) {
                 }
             }
         }
-        for (let i = 0; i < boundaries.length; i++) {
-            const futurePacman = {
-                position: {
-                    x: player.position.x + player.velocity.x * pacmanspeed,
-                    y: player.position.y + player.velocity.y * pacmanspeed
-                },
-                radius: player.radius
-            };
-
-            if (rectCircleCollision(boundaries[i], futurePacman)) {
-
-                // SNAP TO EDGE: This clears the "stuck" pixels so turning works next frame
-                if (player.velocity.x > 0) {
-                    player.position.x = boundaries[i].position.x - (boundaries[i].width / 2) - player.radius;
-                } else if (player.velocity.x < 0) {
-                    player.position.x = boundaries[i].position.x + (boundaries[i].width / 2) + player.radius;
-                }
-
-                if (player.velocity.y > 0) {
-                    player.position.y = boundaries[i].position.y - (boundaries[i].height / 2) - player.radius;
-                } else if (player.velocity.y < 0) {
-                    player.position.y = boundaries[i].position.y + (boundaries[i].height / 2) + player.radius;
-                }
-
-                player.velocity = { x: 0, y: 0 };
-                break; 
-            }
-        }
-
         if (Math.abs(red.position.x % blocksize - blocksize / 2) < 2 && 
             Math.abs(red.position.y % blocksize - blocksize / 2) < 2) {
             
@@ -1695,7 +1787,7 @@ function animate(currentTime) {
         }
 
         if (circleCollision(player, red)) {
-            if(blinkymode!='run' &&!isResetting){
+            if(blinkymode!='run' &&!isResetting&&!blinkyrunninghome){
                 gamestate = 'resetting'
                 isResetting = true
                 playerLives -= 1;
@@ -1862,7 +1954,7 @@ function animate(currentTime) {
             
         }
         if (circleCollision(player, winky)) {
-            if(winkymode!='run'&&!isResetting){
+            if(winkymode!='run'&&!isResetting&&!winkyrunninghome){
                 isResetting = true
                 gamestate = 'resetting'
                 console.log(winkymode)
@@ -2033,7 +2125,7 @@ function animate(currentTime) {
             
         }
         if (circleCollision(player, dark)) {
-            if(darkmode!='run'&&!isResetting){
+            if(darkmode!='run'&&!isResetting&&!darkrunninghome){
                 gamestate = 'resetting'
                 isResetting = true
                 playerLives -= 1;
@@ -2223,6 +2315,7 @@ function animate(currentTime) {
             idx = Math.floor(Math.random()*mapKeys.length)
             grid = maps[idx]
             isnextleveling = true
+            justteleported = false
             ghostgrid = JSON.parse(JSON.stringify(maps2[idx]));
             winkygrid = JSON.parse(JSON.stringify(maps2[idx]));
             darkgrid = JSON.parse(JSON.stringify(maps2[idx]));
@@ -2318,7 +2411,7 @@ function animate(currentTime) {
         150,
         150
     );
-
+    justteleported = false
 }
 canvas.addEventListener('click', (event) => {
     if (window.currentGameState === "INTRO") {
@@ -2803,6 +2896,7 @@ function getNextdarkMove(startX, startY, targetX, targetY, mapArray) {
 
 function resetGame() {
     resume()
+    justteleported = false
     gamestate = 'normal'
     clock = 0
     drumpanger = 0
@@ -3135,6 +3229,8 @@ function fadeinaudio(a,goto){
         }else{
             a.volume = goto
             a.play()
+            curaudio.muted = isPlatformMuted();
+            a.muted = isPlatformMuted();
             clearInterval(fadeinterval)
         }
         
@@ -3142,8 +3238,10 @@ function fadeinaudio(a,goto){
 }
 
 function glitchUnstuck() {
-    player.velocity.x = 0;
-    player.velocity.y = 0;
+    console.log("%c--- GLITCH UNSTUCK DIAGNOSTICS START ---", "background: #222; color: #ff00ff; font-weight: bold;");
+    console.log("Player exact pixel position before teleport:", player.position.x, player.position.y);
+
+    
     let isinwall = false;
     for (let i = 0; i < wallsarr.length; i++) {
         if (rectCircleCollision(wallsarr[i], player)) {
@@ -3152,13 +3250,22 @@ function glitchUnstuck() {
         }
     }
     
+    console.log("Is player physically colliding with a wall block right now?", isinwall);
     if (!isinwall) {
+        console.log("Exiting early because no wall collision was detected.");
+        console.log("%c--- DIAGNOSTICS END ---", "background: #222; color: #ff00ff;");
         return; 
     }
 
-    let startX = Math.round((player.position.x - blocksize / 2) / blocksize);
-    let startY = Math.round((player.position.y - blocksize / 2) / blocksize);
+    // Convert pixel position to clean map grid coordinates
+    let startX = Math.floor(player.position.x / blocksize);
+    let startY = Math.floor(player.position.y / blocksize);
+    console.log(`Calculated Grid Starting Point: Column X = ${startX}, Row Y = ${startY}`);
     
+    if (startY < 0 || startY >= grid.length || startX < 0 || startX >= grid[0].length) {
+        console.error(`CRITICAL: Starting point is completely outside the grid array bounds! Map size is ${grid[0].length}x${grid.length}`);
+    }
+
     startX = Math.max(0, Math.min(startX, grid[0].length - 1));
     startY = Math.max(0, Math.min(startY, grid.length - 1));
 
@@ -3173,15 +3280,37 @@ function glitchUnstuck() {
         {x: -1, y: 0}  
     ];
 
-    while (queue.length > 0) {
+    let safetyLoopCap = 0;
+    let destinationFound = false;
+
+    while (queue.length > 0 && safetyLoopCap < 2000) {
+        safetyLoopCap++;
         let [cx, cy] = queue.shift();
         let tileType = grid[cy][cx];
 
-        if (tileType === '0' || tileType === '3' || tileType === '4') {
-            console.log(cx,cy)
-            player.position.x = cx * blocksize +blocksize/2
-            player.position.y = cy * blocksize +blocksize/2
-            return;
+        if (tileType == '0' || tileType == '3' || tileType == '4') {
+            console.log(`%cBFS Success! Found empty space at Grid Column: ${cx}, Row: ${cy}. Tile character code is: "${tileType}"`, "color: #00ff00;");
+            
+            player.position.x = cx * blocksize + blocksize / 2;
+            player.position.y = cy * blocksize + blocksize / 2;
+            console.log(`Teleporting player pixel values to: X = ${player.position.x}, Y = ${player.position.y}`);
+
+            // Apply the temporary radius shrink safety check
+            const originalRadius = player.radius;
+            player.radius = blocksize / 2 - 2; 
+
+            setTimeout(() => {
+                player.radius = originalRadius;
+                // Double check if resetting radius breaks things again
+                let stillStuck = false;
+                for (let j = 0; j < wallsarr.length; j++) {
+                    if (rectCircleCollision(wallsarr[j], player)) { stillStuck = true; break; }
+                }
+                console.log("Post-teleport status: Is player STILL stuck after radius reset?", stillStuck);
+            }, 16); 
+
+            destinationFound = true;
+            break;
         }
 
         for (let dir of directions) {
@@ -3197,4 +3326,13 @@ function glitchUnstuck() {
             }
         }
     }
+    
+    if (!destinationFound) {
+        console.warn(`%cBFS exhausted completely after ${safetyLoopCap} iterations without finding a legal tile!`, "color: #ffaa00;");
+        console.log("Triggering hard fallback placement...");
+        player.position.x = blocksize * 2 + blocksize / 2;
+        player.position.y = blocksize * 2 + blocksize / 2;
+    }
+
+    console.log("%c--- GLITCH UNSTUCK DIAGNOSTICS END ---", "background: #222; color: #ff00ff; font-weight: bold;");
 }
