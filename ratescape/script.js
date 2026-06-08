@@ -115,6 +115,27 @@ const maps = {
        "9011110111111110111111110111109".split(""),
        "9400000000000000000000000000009".split(""),
        "9999999999999999999999999999999".split("")],
+    1:[
+    "9999999999999999999999999999999".split(""),
+    "9000000000000000000000000000009".split(""),
+    "9011110111110110110111110111109".split(""),
+    "9014000000000000000000000000109".split(""),
+    "9010101011111110111111101010109".split(""),
+    "9000101011400110110001101010009".split(""),
+    "9010100011010000111411101010109".split(""),
+    "9010101011000110110001101010109".split(""),
+    "9010101011111110110101100010109".split(""),
+    "3010101010000000000000101010103".split(""),
+    "9010101010111115111110101010109".split(""),
+    "9010100010155555555510100010109".split(""),
+    "9010101010111111111110101010109".split(""),
+    "9000101000000000000000001010109".split(""),
+    "9010101111110101110111111010009".split(""),
+    "9010100000000104010000000010109".split(""),
+    "9010111011110111010111101110109".split(""),
+    "9000000000000000000000000000049".split(""),
+    "9999999999999999999999999999999".split("")
+    ],
 }
 const maps2 = {
     0:["1111111111111111111111111111111".split(""),
@@ -136,6 +157,27 @@ const maps2 = {
        "1011110111111110111111110111101".split(""),
        "1000000000000000000000000000001".split(""),
        "1111111111111111111111111111111".split("")],
+    1:[
+    "1111111111111111111111111111111".split(""),
+    "1000000000000000000000000000001".split(""),
+    "1011110111110110110111110111101".split(""),
+    "1010000000000000000000000000101".split(""),
+    "1010101011111110111111101010101".split(""),
+    "1000101011000110110001101010001".split(""),
+    "1010100011010000111011101010101".split(""),
+    "1010101011000110110001101010101".split(""),
+    "1010101011111110110101100010101".split(""),
+    "0010101010000000000000101010100".split(""),
+    "1010101010111110111110101010101".split(""),
+    "1010100010100000000010100010101".split(""),
+    "1010101010111111111110101010101".split(""),
+    "1000101000000000000000001010101".split(""),
+    "1010101111110101110111111010001".split(""),
+    "1010100000000100010000000010101".split(""),
+    "1010111011110111010111101110101".split(""),
+    "1000000000000000000000000000001".split(""),
+    "1111111111111111111111111111111".split("")
+    ],
 }
 const mapKeys = Object.keys(maps)
 console.log(mapKeys)
@@ -152,7 +194,7 @@ let blinkyisscattering = false
 let blinkylastmove = 0
 let blinkyrunningtime = 0
 let blinkyrunninghome = false
-const blinkyhome = { x: 12, y: 1}
+const blinkyhome = { 0:[12,1], 1:[11,11]}
 let blinkytimer = 0
 
 
@@ -163,7 +205,7 @@ let winkyisscattering = false
 let winkylastmove = 0
 let winkyrunningtime = 0
 let winkyrunninghome = false
-const winkyhome = { x: 19, y: 1}
+const winkyhome = { 0:[19,1],1:[15,11]}
 let winkytimer = 0
 
 let darkmode = 'scatter'
@@ -173,13 +215,14 @@ let darkisscattering = false
 let darklastmove = 0
 let darkrunningtime = 0
 let darkrunninghome = false
-const darkhome = { x: 16, y: 1 }
+const darkhome = {0:[16,1],1:[17,11]}
 let darktimer = 0
-let darkSpeed = Math.random()*1.5+2.5
+let darkSpeed = 3.5
 let blinkySpeed = 3.5;
 let winkySpeed = 2.8;
 let id
 let isGameOver = false;
+let toblock = {0:[]}
 /**//*
     draw() {
         context.save();
@@ -215,6 +258,27 @@ let isGameOver = false;
         context.restore();
     }
     */
+
+    const PAUSE_BTN = {
+        width: 240,
+        height: 80,
+        get x() { return (canvas.width * 0.9) - this.width / 2; },
+        get y() { return this.height / 20; } // Evaluates precisely to 4px
+    };
+
+    const SKINS_BTN = {
+        width: 150,
+        height: 150,
+
+        get x() { 
+            const originalDrawX = (canvas.width * 0.9) - canvas.width * (250 / canvas.width) / 2;
+            return originalDrawX + 100; 
+        },
+        get y() { 
+            const originalDrawY = canvas.height * (125 / canvas.height) / 20;
+            return originalDrawY + 120; 
+        }
+    };
 class FloatingText {
     constructor({ x, y, text,color }) {
         this.x = x;
@@ -897,7 +961,13 @@ class pacMan {
             }
             
         }else{
+            if((blinkyrunningtime>=510 || winkyrunningtime>=510 || darkrunningtime>=510) && skin=='base'){
+                mouseImg.src = 'mouse2.png';
+            }
             if(skin=='glitch'){
+                if(blinkyrunningtime>=510 || winkyrunningtime>=510 || darkrunningtime>=510){
+                    mouseImg.src = 'glitch2.png'    
+                }else{
                 glitchclock = (glitchclock+1)%240
                     console.log(glitchclock)
                     if(glitchclock>180){
@@ -909,6 +979,7 @@ class pacMan {
                     }else{
                         mouseImg = glitchImages.pos4
                     }
+                }
             }
             if(skin=='drump'){
                 drumpanger+=1
@@ -1182,16 +1253,16 @@ const ghostStartGridY = 1;
 
 const red = new ghost({
     position: {
-        x: 12 * blocksize + blocksize / 2, // 1 * 36 + 18 = 54
-        y: 1 * blocksize + blocksize / 2  // 1 * 36 + 18 = 54
+        x: blinkyhome[idx][0] * blocksize + blocksize / 2, // 1 * 36 + 18 = 54
+        y: blinkyhome[idx][1] * blocksize + blocksize / 2  // 1 * 36 + 18 = 54
     },
     velocity: { x: 0, y: 0 },
     name:'blinky',
 });
 const winky = new ghost({
     position: {
-        x: 19 * blocksize + blocksize / 2, // 1 * 36 + 18 = 54
-        y: 1 * blocksize + blocksize / 2  // 1 * 36 + 18 = 54
+        x: winkyhome[idx][0] * blocksize + blocksize / 2, // 1 * 36 + 18 = 54
+        y: winkyhome[idx][1] * blocksize + blocksize / 2  // 1 * 36 + 18 = 54
     },
     velocity: { x: 0, y: 0 },
     color:'#e6e6e6',
@@ -1209,8 +1280,8 @@ linearGradient.addColorStop(0, "#8b3100");
 linearGradient.addColorStop(1, '#ed755a'); 
 const dark = new ghost({
     position: {
-        x: 15 * blocksize + blocksize / 2,
-        y: 1 * blocksize + blocksize / 2
+        x: darkhome[idx][0] * blocksize + blocksize / 2,
+        y: darkhome[idx][1] * blocksize + blocksize / 2
     },
     velocity: { x: 0, y: 0 },
     color: '#8b3100',
@@ -1433,7 +1504,6 @@ function animate(currentTime) {
             }
         }
     }
-    console.log(fps)
     if (isGameOver) return;
     if (!currentTime) currentTime = performance.now();
     targetFPS = 1000/fps;
@@ -1527,6 +1597,7 @@ function animate(currentTime) {
 
         if(darktimer>0){
             darktimer+=1
+            darkgrid[2][15] = '1'
             if(darktimer>200){
                 darktimer = 0
                 darkgrid[2][15] = '0'
@@ -1583,7 +1654,6 @@ function animate(currentTime) {
             if (false==circleCollision(player,steroids2arr[i])){
                 steroids2arr[i].draw()
             }else{
-
                 if(skin == 'base'){
                     mouseImg.src = 'mouse.png';
                 }else if(skin=='glitch'){
@@ -1767,7 +1837,7 @@ function animate(currentTime) {
         }
         
         if (Math.abs(dark.position.x % blocksize - blocksize / 2) < 2 && 
-            Math.abs(dark.position.y % blocksize - blocksize / 2) < 2) {
+            Math.abs(dark.position.y % blocksize - blocksize / 2) <2) {
 
             const gGridX = Math.round((dark.position.x - blocksize / 2) / blocksize);
             const gGridY = Math.round((dark.position.y - blocksize / 2) / blocksize);
@@ -1775,10 +1845,10 @@ function animate(currentTime) {
             const pGridY = Math.round((player.position.y - blocksize / 2) / blocksize);
             dark.position.x = gGridX * blocksize + blocksize / 2;
             dark.position.y = gGridY * blocksize + blocksize / 2;
+            darkSpeed = 3.5
+            if(darkrunninghome)darkSpeed = 1
             const nextMove = getNextdarkMove(gGridX, gGridY, pGridX, pGridY, darkgrid);
             darklastmove = nextMove;
-
-            darkSpeed = (Math.random() * 1.5 + 2.5)*(1+extra);
             if(skin=='drump' &&drumpanger){
                 darkSpeed = darkSpeed/10 * (10-Math.floor(drumpanger/77))
             }
@@ -1910,18 +1980,18 @@ function animate(currentTime) {
                         desiredVelocity = { x: 0, y: 0 };
                         
                         // Reset Blinky's position
-                        red.position.x = 12 * blocksize + blocksize / 2;
-                        red.position.y = 1 * blocksize + blocksize / 2;
+                        red.position.x = blinkyhome[idx][0] * blocksize + blocksize / 2;
+                        red.position.y = blinkyhome[idx][1] * blocksize + blocksize / 2;
                         
                         // Give the player a tiny breather before the ghost attacks againi
                         blinkyscattercount = 0;
                         blinkylastmodechange = 0;
 
-                        winky.position.x = 19 * blocksize + blocksize / 2;
-                        winky.position.y = 1 * blocksize + blocksize / 2;
+                        winky.position.x = winkyhome[idx][0] * blocksize + blocksize / 2;
+                        winky.position.y = winkyhome[idx][1] * blocksize + blocksize / 2;
 
-                        dark.position.x = 15*blocksize+blocksize/2
-                        dark.position.y = 1*blocksize+blocksize/2
+                        dark.position.x = darkhome[idx][0]*blocksize+blocksize/2
+                        dark.position.y = darkhome[idx][1]*blocksize+blocksize/2
                         // Give the player a tiny breather before the ghost attacks again
                         winkymode = 'scatter';
                         winkyscattercount = 0;
@@ -2085,7 +2155,9 @@ function animate(currentTime) {
                         blinkymode = 'scatter';
                         blinkyscattercount = 0;
                         blinkylastmodechange = 0;
-
+                        darkmode = 'scatter'
+                        darkscattercount = 0
+                        darklastmodechange = 0
                         winky.position.x = 19 * blocksize + blocksize / 2;
                         winky.position.y = 1 * blocksize + blocksize / 2;
                         darkmode = 'scatter';
@@ -2101,6 +2173,8 @@ function animate(currentTime) {
                         blinkytimer = 0;
                         winkytimer = 0;
                         blinkyrunninghome = false;
+                        darktimer = 0
+                        darkrunninghome = false
                         winkyrunninghome = false;
                         gamestate = 'normal'
                         id = requestAnimationFrame(animate);
@@ -2394,74 +2468,61 @@ function animate(currentTime) {
 
         }
     }
-    const x = (canvas.width*0.9)-canvas.width*(250/canvas.width)/2, y = canvas.height*(125/canvas.height)/20, width = canvas.width*(250/canvas.width), height = canvas.height*(125/canvas.height);
 
-
-    // Add text
     context.fillStyle = "white";
     context.font = 'bold 30px "Press Start 2p"';
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText("Pause||", x+width/2, y+height/2);
 
+    // Centers text inside your 240x80 pause button grid
+    context.fillText(
+        "Pause||", 
+        PAUSE_BTN.x + PAUSE_BTN.width / 2, 
+        PAUSE_BTN.y + PAUSE_BTN.height / 2
+    );
+
+    // Draw Skins Image using your exact 150x150 scale dimensions
     context.drawImage(
         skinsImg, 
-        x+100, 
-        y+120, 
-        150,
-        150
+        SKINS_BTN.x, 
+        SKINS_BTN.y, 
+        SKINS_BTN.width,
+        SKINS_BTN.height
     );
-    justteleported = false
+
+    justteleported = false;
 }
 canvas.addEventListener('click', (event) => {
-    if (window.currentGameState === "INTRO") {
-        return;
-    }
+    if (window.currentGameState === "INTRO") return;
+    
     const rect = canvas.getBoundingClientRect();
     const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
     const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
-    const btnWidth = 240
-    const btnHeight = 80
-    const btnX = (canvas.width*0.9)-btnWidth/2
-    const btnY = btnHeight/20
-    
-
-    if (
-        mouseX >= btnX && mouseX <= btnX + btnWidth &&
-        mouseY >= btnY && mouseY <= btnY + btnHeight) {
-            if(paused){
-                resume()
-            }else{
-                pausegame()
-            }
+    // --- PAUSE BUTTON CLICK ZONE ---
+    if (mouseX >= PAUSE_BTN.x && mouseX <= PAUSE_BTN.x + PAUSE_BTN.width &&
+        mouseY >= PAUSE_BTN.y && mouseY <= PAUSE_BTN.y + PAUSE_BTN.height) {
+        
+        if (paused) {
+            resume();
+        } else {
+            pausegame();
         }
-});
-canvas.addEventListener('click', (event) => {
-    if (window.currentGameState === "INTRO") {
-        return;
+        return; // Click registered, exit out
     }
-    if (gamestate === 'resetting' || gamestate === 'gameover'){
-        return
-    }
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
-    const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
-    const btnWidth = 150
-    const btnHeight = 150
-    const btnX = (canvas.width*0.95)-btnWidth/2
-    const btnY = btnHeight/3*2.5
-    
-    if (
-        mouseX >= btnX && mouseX <= btnX + btnWidth &&
-        mouseY >= btnY && mouseY <= btnY + btnHeight) {
-            if(paused){
-                resume()
-            }else{
-                skins()
-            }
+    // --- SKINS BUTTON CLICK ZONE ---
+    if (gamestate === 'resetting' || gamestate === 'gameover') return;
+
+    if (mouseX >= SKINS_BTN.x && mouseX <= SKINS_BTN.x + SKINS_BTN.width &&
+        mouseY >= SKINS_BTN.y && mouseY <= SKINS_BTN.y + SKINS_BTN.height) {
+        
+        if (paused) {
+            resume();
+        } else {
+            skins();
         }
+    }
 });
 animate()
 function getNextblinkyMove(startX, startY, targetX, targetY, mapArray) {
@@ -2504,8 +2565,8 @@ function getNextblinkyMove(startX, startY, targetX, targetY, mapArray) {
             targetY = 1;
         }
         if(blinkyrunninghome){
-            targetX = blinkyhome.x
-            targetY = blinkyhome.y 
+            targetX = blinkyhome[idx][0]
+            targetY = blinkyhome[idx][1]
         }
         if (startX === targetX && startY === targetY) {
             if (blinkymode === 'scatter') {
@@ -2649,8 +2710,8 @@ function getNextwinkyMove(startX, startY, targetX, targetY, mapArray) {
             targetY = 1;
         }
         else if(winkyrunninghome){
-            targetX = winkyhome.x
-            targetY = winkyhome.y 
+            targetX = winkyhome[idx][0]
+            targetY = winkyhome[idx][1]
         }
         if (startX === targetX && startY === targetY) {
             if (winkymode === 'scatter') {
@@ -2726,170 +2787,173 @@ function getNextwinkyMove(startX, startY, targetX, targetY, mapArray) {
     
 }
 function getNextdarkMove(startX, startY, targetX, targetY, mapArray) {
-    let dirX = 0;
-    let dirY = 0;
 
-    if (player.velocity.x > 0) dirX = 1;
-    else if (player.velocity.x < 0) dirX = -1;
-    else if (player.velocity.y > 0) dirY = 1;
-    else if (player.velocity.y < 0) dirY = -1;
+    const directions = [
+        { dx: 0, dy: -1 },
+        { dx: 0, dy: 1 },
+        { dx: -1, dy: 0 },
+        { dx: 1, dy: 0 }
+    ];
 
-    let refX = Math.round((player.position.x - blocksize / 2) / blocksize);
-    let refY = Math.round((player.position.y - blocksize / 2) / blocksize);
+    // =========================
+    // RUN MODE (random escape)
+    // =========================
+    if (darkmode === 'run' && !darkrunninghome) {
 
-    refY += dirY * 2;
+        let options = [];
 
-    let finalTargetX = (2 * refX) - Math.round((red.position.x-blocksize/2)/blocksize);
-    let finalTargetY = (2 * refY) - Math.round((red.position.y-blocksize/2)/blocksize);
-
-    targetX = Math.max(0, Math.min(finalTargetX, mapArray[0].length - 1));
-    targetY = Math.max(0, Math.min(finalTargetY, mapArray.length - 1));
-    if(darkmode=='run' && !darkrunninghome){
-        const directions = [
-            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
-            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
-        ];
-
-        let queue = [];
         for (let dir of directions) {
-            if (dir.dx === -darklastmove.x && dir.dy === -darklastmove.y) {
-                continue; 
-            }
+
+            // prevent instant reverse
+            if (dir.dx === -darklastmove.x && dir.dy === -darklastmove.y) continue;
+
             let nx = startX + dir.dx;
             let ny = startY + dir.dy;
 
-            // Portal wrap-around
+            // wrap portals
             if (nx < 0) nx = mapArray[0].length - 1;
             else if (nx >= mapArray[0].length) nx = 0;
 
-            if (ny >= 0 && ny < mapArray.length) {
-                // "3" is the portal tile in your map, "1" is a wall
-                if (mapArray[ny][nx] !== '1') {
-                    queue.push(dir);
-                }
+            // bounds safety
+            if (ny < 0 || ny >= mapArray.length) continue;
+
+            if (mapArray[ny][nx] !== '1') {
+                options.push(dir);
             }
         }
-        if(queue.length>0){
-           let pick = queue[Math.floor(Math.random() * queue.length)];
-            return { x: pick.dx, y: pick.dy };
-        }
-        return {x:-1*darklastmove.x,y:-1*darklastmove.y} 
-    }else{
+
+        if (options.length === 0) return { x: 0, y: 0 };
+
+        const pick = options[Math.floor(Math.random() * options.length)];
+        return { x: pick.dx, y: pick.dy };
+    }
+
+    // =========================
+    // SCATTER OVERRIDE
+    // =========================
+    if (darkmode === 'scatter') {
+        targetX = mapArray[0].length - 2;
+        targetY = mapArray.length - 2;
+    }
+
+    // =========================
+    // HOME OVERRIDE
+    // =========================
+    if (darkrunninghome) {
+        targetX = darkhome[idx][0];
+        targetY = darkhome[idx][1];
+    }
+
+    // =========================
+    // HARD ARRIVAL STOP (CRITICAL FIX)
+    // =========================
+    if (startX === targetX && startY === targetY) {
+
         if (darkmode === 'scatter') {
-            targetX = ghostgrid[0].length-2;
-            targetY = ghostgrid.length-2;
+            darkmode = 'chase';
         }
-        else if(darkrunninghome){
-            targetX = darkhome.x
-            targetY = darkhome.y 
+        if (darkrunninghome &&darktimer==0) {
+            darkmode = 'chase';
+            darktimer = 1;
+
+            darkgrid[2][15] = '1';
+
         }
-        if (startX === targetX && startY === targetY) {
-            if (darkmode === 'scatter') {
-                darkmode = 'chase'; // Instantly flip back to chase
+
+
+        return { x: 0, y: 0 };
+    }
+
+    // =========================
+    // BFS (CHASE MODE)
+    // =========================
+    let visited = Array.from(
+        { length: mapArray.length },
+        () => Array(mapArray[0].length).fill(false)
+    );
+
+    let queue = [];
+
+    // seed neighbors
+    for (let dir of directions) {
+
+        if (dir.dx === -darklastmove.x && dir.dy === -darklastmove.y) continue;
+
+        let nx = startX + dir.dx;
+        let ny = startY + dir.dy;
+
+        // wrap
+        if (nx < 0) nx = mapArray[0].length - 1;
+        else if (nx >= mapArray[0].length) nx = 0;
+
+        // bounds check (IMPORTANT FIX)
+        if (ny < 0 || ny >= mapArray.length) continue;
+
+        if (mapArray[ny][nx] !== '1' && !visited[ny][nx]) {
+
+            if (nx === targetX && ny === targetY) {
+                return { x: dir.dx, y: dir.dy };
             }
-            if(darkrunninghome && darktimer==0){
-                darkmode = 'chase'
-                darkgrid[2][15] = '1'
-                darktimer = 1
-            }
+
+            visited[ny][nx] = true;
+
+            queue.push({
+                x: nx,
+                y: ny,
+                firstX: dir.dx,
+                firstY: dir.dy
+            });
+        }
+    }
+
+    let steps = 0;
+    const MAX_STEPS = 1500; // PREVENT FREEZE
+
+    while (queue.length > 0) {
+
+        if (++steps > MAX_STEPS) {
+            console.warn("BFS stopped (overflow safety)");
             return { x: 0, y: 0 };
         }
 
-        const directions = [
-            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
-            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
-        ];
+        let cell = queue.shift();
 
-        let queue = [];
-        let visited = Array(mapArray.length).fill().map(() => Array(mapArray[0].length).fill(false));
-        let visited2 = Array(mapArray.length).fill().map(() => Array(mapArray[0].length).fill(false));
-        // Start BFS from the ghost's current neighbors
         for (let dir of directions) {
-            let nx = startX + dir.dx;
-            let ny = startY + dir.dy;
 
-            // Portal wrap-around
+            let nx = cell.x + dir.dx;
+            let ny = cell.y + dir.dy;
+
+            // wrap
             if (nx < 0) nx = mapArray[0].length - 1;
             else if (nx >= mapArray[0].length) nx = 0;
 
-            if (ny >= 0 && ny < mapArray.length) {
-                // "3" is the portal tile in your map, "1" is a wall
-                if (mapArray[ny][nx] !== '1' && !visited[ny][nx]) {
-                    if (nx === targetX && ny === targetY) return { x: dir.dx, y: dir.dy };
-                    visited[ny][nx] = true;
-                    visited2[ny][nx] = true;
-                    queue.push({ x: nx, y: ny, firstX: dir.dx, firstY: dir.dy });
+            // bounds check (CRITICAL)
+            if (ny < 0 || ny >= mapArray.length) continue;
+
+            if (mapArray[ny][nx] !== '1' && !visited[ny][nx]) {
+
+                if (nx === targetX && ny === targetY) {
+                    return {
+                        x: cell.firstX,
+                        y: cell.firstY
+                    };
                 }
+
+                visited[ny][nx] = true;
+
+                queue.push({
+                    x: nx,
+                    y: ny,
+                    firstX: cell.firstX,
+                    firstY: cell.firstY
+                });
             }
         }
-        let obj = new Map()
-        let m = 9999999
-        if(ghostgrid[targetY][targetX]=='1'){
-            while (queue.length > 0) {
-                let cell = queue.shift();
-                
-                for (let dir of directions) {
-                    let nx = cell.x + dir.dx;
-                    let ny = cell.y + dir.dy;
+    }
 
-                    // Portal wrap-around
-                    if (nx < 0) nx = mapArray[0].length - 1;
-                    else if (nx >= mapArray[0].length) nx = 0;
-
-                    if (ny >= 0 && ny < mapArray.length) {
-                        if (mapArray[ny][nx] !== '1' && !visited[ny][nx]) {
-                            let dist = Math.abs(targetX-nx)+Math.abs(targetY-ny)
-                            m = Math.min(m,dist)
-                            obj.set(dist,[cell.firstX,cell.firstY])
-                            visited[ny][nx] = true;
-                            queue.push({ 
-                                x: nx, 
-                                y: ny, 
-                                firstX: cell.firstX, 
-                                firstY: cell.firstY 
-                            });
-                        }
-                    }
-                }
-            }
-        }else{
-            while (queue.length > 0) {
-                let cell = queue.shift();
-
-                for (let dir of directions) {
-                    let nx = cell.x + dir.dx;
-                    let ny = cell.y + dir.dy;
-
-                    // Portal wrap-around
-                    if (nx < 0) nx = mapArray[0].length - 1;
-                    else if (nx >= mapArray[0].length) nx = 0;
-
-                    if (ny >= 0 && ny < mapArray.length) {
-                        if (!visited2[ny][nx]) {
-                            // If we found the target, return the direction we took at the very start
-                            if (nx === targetX && ny === targetY) {
-                                return { x: cell.firstX, y: cell.firstY };
-                            }
-
-                            visited2[ny][nx] = true;
-                            queue.push({ 
-                                x: nx, 
-                                y: ny, 
-                                firstX: cell.firstX, 
-                                firstY: cell.firstY 
-                            });
-                        }
-                    }
-                }
-            }
-        }
-        let result = obj.get(m);
-        if (result) {
-            return { x: result[0], y: result[1] };
-        }
-        return { x: 0, y: 0 };
-            }
+    return { x: 0, y: 0 };
 }
+
 
 
 
@@ -2956,23 +3020,23 @@ function resetGame() {
                         player.velocity = { x: 0, y: 0 };
                         desiredVelocity = { x: 0, y: 0 };
                         
-                        red.position.x = 12 * blocksize + blocksize / 2;
-                        red.position.y = 1 * blocksize + blocksize / 2;
+                        red.position.x = blinkyhome[idx][0] * blocksize + blocksize / 2;
+                        red.position.y = blinkyhome[idx][1] * blocksize + blocksize / 2;
                        
                         blinkymode = 'scatter';
                         blinkyscattercount = 0;
                         blinkylastmodechange = 0;
 
-                        winky.position.x = 19 * blocksize + blocksize / 2;
-                        winky.position.y = 1 * blocksize + blocksize / 2;
+                        winky.position.x = winkyhome[idx][0] * blocksize + blocksize / 2;
+                        winky.position.y = winkyhome[idx][1] * blocksize + blocksize / 2;
                         
 
                         winkymode = 'scatter';
                         winkyscattercount = 0;
                         winkylastmodechange = 0;
 
-                        dark.position.x = 15*blocksize+blocksize/2
-                        dark.position.y = 1*blocksize+blocksize/2
+                        dark.position.x = darkhome[idx][0]*blocksize+blocksize/2
+                        dark.position.y = darkhome[idx][1]*blocksize+blocksize/2
                         
     
                         darkmode = 'scatter';
@@ -2996,7 +3060,7 @@ function resetGame() {
     setTimeout(() => {
         lastTime = performance.now(); // Reset
         accumulator = 1000/60;            
-        console.log('accumulator: ',accumulator)
+
         isGameOver = false;        
         animate();          // 4. Start fresh
     }, 250);
@@ -3250,7 +3314,6 @@ function glitchUnstuck() {
         }
     }
     
-    console.log("Is player physically colliding with a wall block right now?", isinwall);
     if (!isinwall) {
         console.log("Exiting early because no wall collision was detected.");
         console.log("%c--- DIAGNOSTICS END ---", "background: #222; color: #ff00ff;");

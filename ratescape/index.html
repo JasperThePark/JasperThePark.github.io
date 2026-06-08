@@ -1,13 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Rat Escape</title>
   <link rel="shortcut icon" type="image/x-icon" href="cheese.png" />
-  
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&family=Tiny5&display=swap" rel="stylesheet">
-  
-
-  <script src="https://crazygames.com"></script>
+  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
 </head>
 <style>
   html, body {
@@ -16,34 +15,27 @@
     overflow: hidden;
     height: 100%;
     width: 100%;
-    background-color: black; /* Match your game theme */
-    
+    background-color: black;
   }
 
   #game-container {
-    display: flex;       /* Put canvas and sidebar side-by-side */
+    display: flex;
     flex-direction: row;
     width: 100vw;
     height: 100vh;
+    position: relative; /* Keep absolute overlays relative to this container */
   }
 
   canvas {
-    /* This forces the canvas to shrink to fit the screen */
     max-width: 100%;
     max-height: 100%;
-      
-    /* This ensures the image doesn't get stretched or squished */
     object-fit: contain; 
-    /* Prevents pulling the screen, double-tap zoom, and pinch-zoom */
     touch-action: none; 
-    
-    /* Disables the annoying grey highlight box that appears on mobile when you tap things */
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    
-    /* Prevents users from accidentally selecting text/images if they hold down on the screen */
     user-select: none;
     -webkit-user-select: none;
   }
+
   @media screen and (max-width: 767px) and (orientation: portrait) {
     body::before {
         content: "Please rotate your device to play!";
@@ -59,16 +51,17 @@
         font-size: 24px;
     }
     canvas {
-        display: none; /* Hide the game until they flip the phone */
+        display: none;
     }
-}
+  }
+
   #ui-layer {
-    position: absolute;  /* Lock to the container */
-    bottom: 20px;        /* Distance from bottom */
-    right: 20px;         /* Distance from right */
-    text-align: right;   /* Align text to the right */
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    text-align: right;
     font-family: 'Tiny5';
-    pointer-events: none; /* Make sure clicks go through to the game */
+    pointer-events: none;
   }
 
   .stat-label {
@@ -77,144 +70,107 @@
     margin: 5px 0;
     text-transform: uppercase;
   }
-  #lives{
-    display:flex;
-    gap:10px;
+
+  #lives {
+    display: flex;
+    gap: 10px;
     justify-content: end;
     margin-top: 5%;
   }
-  .icon-wrapper {
-    position: relative; 
-    width: 20px;
-    height: 20px;
-    margin-top: 10px;
-  }
-  .icon-wrapper div {
-    position: absolute;
-    border-radius: 50%;
-  }
-  .life-icon{
-    width:20px;
-    height:20px;
-    background-color: gray;
-    border-radius: 50%;
-    position: relative;
-  }
-  .life-icon {
-  width: 20px; height: 20px;
-  background-color: gray;
-  top: 0; left: 0;
-}
-.leftmouseears {
-  width: 13px; height: 13px;
-  background-color: gray;
-  top: -5px; left: -6px;
-}
-.rightmouseears {
-  width: 13px; height: 13px;
-  background-color: gray;
-  top: -5px; right: -6px;
-}
-.leftmouseearsin {
-  width: 8px; height: 8px;
-  background-color: pink;
-  top: -2px; left: -3px;
-  z-index: 1; 
-}
-.rightmouseearsin {
-  width: 8px; height: 8px;
-  background-color: pink;
-  top: -2px; right: -3px;
-  z-index: 1;
-}
-.mouseeyeleft {
-  width: 8px; height: 8px;
-  background-color: white;
-  top: 4px; left: 1px;
-}
-.mouseeyeright {
-  width: 8px; height: 8px;
-  background-color: white;
-  top: 4px; right: 1px;
-}
-.mouseeyeleftin {
-  width: 5px; height: 5px;
-  background-color: black;
-  top: 4px; left: -0.5px;
-  z-index: 2; 
-}
-.mouseeyerightin {
-  width: 5px; height: 5px;
-  background-color: black;
-  top: 4px; right: 3.5px;
-  z-index: 2;
-}
-  
-  #points { 
-    color: yellow; } 
+
+  /* --- FIXED LEADERBOARD OVERLAY BOX --- */
   #leaderboard-overlay {
     display: none; 
     position: absolute; 
-    top: 50%; 
+    /* Positioned cleanly below your "Leaderboard" text rendered at 44.4% height */
+    top: 52%; 
     left: 50%; 
-    transform: translate(-50%, -50%);
-    color: white; 
-    padding: 15px;
-    text-align: center;
-    font-family: 'Press Start 2p', system-ui;
-    z-index: 100;
+    transform: translateX(-50%);
     width: 90%;
-    max-width: 350px; /* Slimmer so it fits next to things */
-}
+    max-width: 420px;
+    z-index: 100;
+    
+    /* FIX: Clicks pass right through the empty container space to the canvas buttons */
+    pointer-events: none; 
+  }
+
+  #leaderboard {
+    list-style: none; 
+    padding: 0;
+    margin: 0;
+  }
 
   #leaderboard li {
-    opacity: 0.71;
-      background: rgb(14, 18, 126);
-      margin: 5px 0;
-      font-size: 14px;
-      padding: 5px 10px;
-      border-radius: 5px;
-      display: flex;
-      font-family: 'Press Start 2p';
-      justify-content: space-between;
-  }
-  button {
-      background: #2e3bcc;
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 10px;
+    opacity: 0.9;
+    background: rgb(14, 18, 126);
+    margin: 6px 0;
+    font-size: 12px; /* Balanced sizing for classic arcade boards */
+    padding: 6px 12px;
+    border-radius: 5px;
+    display: flex;
+    color: white;
+    font-family: 'Press Start 2P';
+    justify-content: space-between;
   }
 
-  button:hover {
-      background: #212ca7;
-  }
+  /* Mouse UI styles kept intact */
+  .icon-wrapper { position: relative; width: 20px; height: 20px; margin-top: 10px; }
+  .icon-wrapper div { position: absolute; border-radius: 50%; }
+  .life-icon { width: 20px; height: 20px; background-color: gray; top: 0; left: 0; }
+  .leftmouseears { width: 13px; height: 13px; background-color: gray; top: -5px; left: -6px; }
+  .rightmouseears { width: 13px; height: 13px; background-color: gray; top: -5px; right: -6px; }
+  .leftmouseearsin { width: 8px; height: 8px; background-color: pink; top: -2px; left: -3px; z-index: 1; }
+  .rightmouseearsin { width: 8px; height: 8px; background-color: pink; top: -2px; right: -3px; z-index: 1; }
+  .mouseeyeleft { width: 8px; height: 8px; background-color: white; top: 4px; left: 1px; }
+  .mouseeyeright { width: 8px; height: 8px; background-color: white; top: 4px; right: 1px; }
+  .mouseeyeleftin { width: 5px; height: 5px; background-color: black; top: 4px; left: -0.5px; z-index: 2; }
+  .mouseeyerightin { width: 5px; height: 5px; background-color: black; top: 4px; right: 3.5px; z-index: 2; }
+  #points { color: yellow; } 
 </style>
+<body>
 
 <div id="game-container">
-    <canvas id="gameCanvas"></canvas>
-    <div id="leaderboard-overlay" style="
-        display: none; 
-        position: absolute; 
-        top: 70%; left: 50%; 
-        transform: translate(-50%, -50%);
-        color: white; 
-        padding: 20px;
-        text-align: center;
-        font-family: 'Arial', sans-serif;">
+    <div id="start-screen" style="
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: black;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 200;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;">
         
-        <ul id="leaderboard" style="list-style: none; padding: 0;"></ul>
+        <h1 style="font-family: 'Press Start 2P', sans-serif; color: #38b6ff; font-size: 32px; margin-bottom: 30px; text-align: center;">RAT ESCAPE</h1>
+        <p style="font-family: 'Press Start 2P', sans-serif; color: white; font-size: 16px; animation: blink 1.2s infinite; text-align: center;">CLICK ANYWHERE TO PLAY</p>
     </div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="leaderboard-overlay">
+        <ul id="leaderboard"></ul>
+    </div>
+
     <div id="ui-layer" hidden>
         <div id="levels" class="stat-label">Level: 0</div>
         <div id="lives" class="stat-label">Lives: </div>
         <div id='points' class="stat-label">Points: 0</div>
     </div>
 </div>
+
+<style>
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>
+
 <script>
-  window.currentGameState = 'INTRO'
+  window.currentGameState = 'INTRO';
 </script>
 <script src="open.js"></script>
 <script type="module" src="script.js"></script>
+</body>
+</html>

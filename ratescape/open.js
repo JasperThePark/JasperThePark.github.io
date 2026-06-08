@@ -14,6 +14,58 @@ let state = 'intro';
 // Fix: 'this' is not valid in global space, using 0 fallback for initialization
 let lastshiftx = Math.cos(0) * (50 * 0.2);
 let lastshifty = Math.sin(0) * (50 * 0.2);
+async function initSDK() {
+    try {
+        await window.CrazyGames.SDK.init();
+        console.log("CrazyGames SDK initialized");
+    } catch (e) {
+        console.log("SDK init failed or running outside CrazyGames");
+    }
+}
+
+initSDK();
+
+
+
+
+
+// Grab the overlay screen element
+const startScreen = document.getElementById('start-screen');
+
+if (startScreen) {
+    startScreen.addEventListener('click', () => {
+        // 1. Permanently hide the start screen overlay
+        startScreen.style.display = 'none';
+        
+        // 2. Safely ping CrazyGames that the user is starting the application context
+        try {
+            if (window.CrazyGames && window.CrazyGames.SDK && window.CrazyGames.SDK.game) {
+                window.CrazyGames.SDK.game.gameplayStart();
+                console.log("CrazyGames SDK: Automatic validation check passed.");
+            }
+        } catch (error) {
+            console.warn("CrazyGames SDK not fully initialized or running locally:", error);
+        }
+
+        // 3. Kick off your transition logic!
+        window.currentGameState = 'INTRO';
+        startmusic.muted = isPlatformMuted();
+        startmusic.play().catch(e => console.log('press to start'));
+        // If your audio assets were waiting for user permission, trigger them here!
+        // playIntroMusic();
+        id123 = requestAnimationFrame(animate);
+    });
+}
+
+
+
+
+
+
+
+
+
+
 
 class ghost {
     constructor({ name='blinky', position, velocity, color = 'yellow', color2 ='orange', color3 ='black', color4 = 'white', color5 ='#FFE066', color6 = '#ffd61d', color7 = 'orange' }) {
@@ -347,7 +399,6 @@ const player = new pacMan({
     radius: 40, 
 });
 
-const press = new texteff(canvas.width/2-180,50,2000,400,1,'Press Any Key To Play Music');
 const title = new texteff2(canvas.width-550,canvas.height/3,2000,400,0,'Rat Escape');
 const play = new texteff3(canvas.width-370,canvas.height/3+100,2000,400,0,'‣START');
 
@@ -372,15 +423,27 @@ function isPlatformMuted() {
     }
 }
 function handler(event){
-    if(state!='start') return;
+    if(state != 'start') return;
     const rect = canvas.getBoundingClientRect();
     const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
     const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
-    if (mouseX >= canvas.width-370 &&
-        mouseX <= canvas.width-370+343 &&
-        mouseY >= canvas.height/3+30 && 
-        mouseY <= canvas.height/3+30+82) {
+    // --- RESPONSIVE BUTTON DIMENSIONS & POSITIONING ---
+    // Matches the X positioning: canvas.width - 370
+    const buttonX = canvas.width - 370; 
+    
+    // Matches text baseline (canvas.height/3 + 100) and offsets upward for font height + padding
+    const buttonY = (canvas.height / 3 + 100) - 70; 
+    
+    const buttonWidth = 295;  // Text width + 10px padding on left/right
+    const buttonHeight = 80;  // Font height boundaries + 10px padding on top/bottom
+
+    // --- ACCURATE COLLISION DETECTION ---
+    if (mouseX >= buttonX &&
+        mouseX <= buttonX + buttonWidth &&
+        mouseY >= buttonY && 
+        mouseY <= buttonY + buttonHeight) {
+        
         console.log("Start text clicked! Initiating game...");
         startmusic.pause();
         
@@ -398,13 +461,7 @@ function handler(event){
 }
 
 canvas.addEventListener('click', handler);
-document.addEventListener('keydown', () => {
-    if(window.currentGameState!='INTRO') return
-    
-    // FIX: Verify platform mute status before running the introductory loop music
-    startmusic.muted = isPlatformMuted();
-    startmusic.play().catch(e => console.log('press to start'));
-}, { once: true });
+
 
 const red = new ghost({
     position: {
@@ -436,6 +493,7 @@ if (isMobile) {
 }
 
 function animate(currentTime1) {
+    if(window.currentGameState!='INTRO')return
     if (!lastTime1) {
         lastTime1 = currentTime1;
         id123 = requestAnimationFrame(animate);
@@ -519,7 +577,7 @@ function animate(currentTime1) {
     context.fillStyle = bgcolor;
     context.fillRect(0, 0, canvas.width, canvas.height);
     
-    press.draw();
+
     title.draw();
     play.draw();
     player.draw();
@@ -553,4 +611,3 @@ function animate(currentTime1) {
 }
 
 // Start the intro loop
-id123 = requestAnimationFrame(animate);
