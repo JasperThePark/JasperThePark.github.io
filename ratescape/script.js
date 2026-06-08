@@ -74,7 +74,7 @@ const canvas = document.getElementById("gameCanvas")
 const context = canvas.getContext("2d")
 var bgcolor = "black"
 let justteleported = false
-
+let mute = false
 canvas.width = 1528
 let texts = []
 canvas.height = 698
@@ -2390,6 +2390,7 @@ function animate(currentTime) {
             grid = maps[idx]
             isnextleveling = true
             justteleported = false
+            
             ghostgrid = JSON.parse(JSON.stringify(maps2[idx]));
             winkygrid = JSON.parse(JSON.stringify(maps2[idx]));
             darkgrid = JSON.parse(JSON.stringify(maps2[idx]));
@@ -2462,6 +2463,8 @@ function animate(currentTime) {
                         drumpslowstart = 0
                         winkyrunninghome = false;
                         darkrunninghome = false;
+                        context.fillStyle = bgcolor
+                        context.fillRect(0, 0, canvas.width, canvas.height)
                         id = requestAnimationFrame(animate);
                         
                     }, 2500);
@@ -2500,8 +2503,8 @@ canvas.addEventListener('click', (event) => {
     const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
 
     // --- PAUSE BUTTON CLICK ZONE ---
-    if (mouseX >= PAUSE_BTN.x && mouseX <= PAUSE_BTN.x + PAUSE_BTN.width &&
-        mouseY >= PAUSE_BTN.y && mouseY <= PAUSE_BTN.y + PAUSE_BTN.height) {
+    if (mouseX >= PAUSE_BTN.x-10 && mouseX <= PAUSE_BTN.x + PAUSE_BTN.width+10 &&
+        mouseY >= PAUSE_BTN.y-10 && mouseY <= PAUSE_BTN.y + PAUSE_BTN.height+10) {
         
         if (paused) {
             resume();
@@ -3067,7 +3070,8 @@ function resetGame() {
 }
 const pauseItems = new Image();
 pauseItems.src = 'ui.png';
-
+const mutedpause = new Image();
+mutedpause.src = 'ui2.png';
 function pausegame(){
     gamestate = 'paused'
     cancelAnimationFrame(id)
@@ -3083,15 +3087,23 @@ function pausegame(){
     pausemusic.volume = 0.02
     fadeaudio(curaudio)
     fadeinaudio(pausemusic,0.02)
-    context.drawImage(
-        pauseItems, 
-        canvas.width*0.15, 
-        canvas.height*0.12, 
-        canvas.width*0.6,
-        canvas.height*0.8
-    );
-
-    
+    if(!mute){
+        context.drawImage(
+            pauseItems, 
+            canvas.width*0.15, 
+            canvas.height*0.12, 
+            canvas.width*0.6,
+            canvas.height*0.8
+        );
+    }else{
+        context.drawImage(
+            mutedpause, 
+            canvas.width*0.15, 
+            canvas.height*0.12, 
+            canvas.width*0.6,
+            canvas.height*0.8
+        );
+    }
 }
 function resume(){
     console.log('resumed')
@@ -3106,19 +3118,68 @@ function resume(){
     animate();   
 }
 canvas.addEventListener('click', (event) => {
-//pause screen -> resume button
+//pause screen -> resume button or mute or
     if(gamestate !='paused'){
             return
         }
                         const rect = canvas.getBoundingClientRect();
                         const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
                         const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
+                        //resume
                         if (
                             mouseX >= canvas.width*0.2 && mouseX <= canvas.width*0.5 &&
                             mouseY >= canvas.height*0.65 && mouseY <= canvas.height*0.8) {
 
                             resume()
                         }
+                        //mute
+                        if (
+                            mouseX <= canvas.width*0.29 &&
+                            mouseY >= canvas.height*0.3 && mouseY <= canvas.height*0.55) {
+                            if(mute==false){
+                                mute = true
+                                const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+                                gradient.addColorStop(0, "rgba(0, 0, 0, 0.85)");
+                                gradient.addColorStop(0.4, "rgba(0, 0, 0, 0.85)");
+                                gradient.addColorStop(1, "rgba(54, 51, 205, 0.85)");  
+                                context.fillStyle = gradient;
+                                context.roundRect(canvas.width*0.15, canvas.height*0.1, canvas.width*0.6, canvas.height*0.8,20);
+                                context.fill()
+                                context.drawImage(
+                                    mutedpause, 
+                                    canvas.width*0.15, 
+                                    canvas.height*0.12, 
+                                    canvas.width*0.6,
+                                    canvas.height*0.8
+                                );
+                                fadeaudio(pausemusic)
+                            }else{
+                                mute = false
+                                const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+                                gradient.addColorStop(0, "rgba(0, 0, 0, 0.85)");
+                                gradient.addColorStop(0.4, "rgba(0, 0, 0, 0.85)");
+                                gradient.addColorStop(1, "rgba(54, 51, 205, 0.85)");  
+                                context.fillStyle = gradient;
+                                context.roundRect(canvas.width*0.15, canvas.height*0.1, canvas.width*0.6, canvas.height*0.8,20);
+                                context.fill()
+                                context.drawImage(
+                                    pauseItems, 
+                                    canvas.width*0.15, 
+                                    canvas.height*0.12, 
+                                    canvas.width*0.6,
+                                    canvas.height*0.8
+                                );
+                                fadeinaudio(curaudio,0.2)
+                            } 
+                            
+                        }
+                        //retry
+                        if (
+                            mouseX >= canvas.width*0.3 && mouseX<=canvas.width*0.6&&
+                            mouseY >= canvas.height*0.3 && mouseY <= canvas.height*0.55) {
+                                resetGame();
+                            }
+                        //skins
                     });
 let baseimage = new Image()
 baseimage.src = 'choosing.png'
@@ -3292,7 +3353,7 @@ function fadeinaudio(a,goto){
             a.volume += 0.05
         }else{
             a.volume = goto
-            a.play()
+            if(!mute)a.play()
             curaudio.muted = isPlatformMuted();
             a.muted = isPlatformMuted();
             clearInterval(fadeinterval)

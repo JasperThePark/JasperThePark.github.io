@@ -424,25 +424,7 @@ function isPlatformMuted() {
 }
 function handler(event){
     if(state != 'start') return;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
-    const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
-
-    // --- RESPONSIVE BUTTON DIMENSIONS & POSITIONING ---
-    // Matches the X positioning: canvas.width - 370
-    const buttonX = canvas.width - 370; 
     
-    // Matches text baseline (canvas.height/3 + 100) and offsets upward for font height + padding
-    const buttonY = (canvas.height / 3 + 100) - 70; 
-    
-    const buttonWidth = 295;  // Text width + 10px padding on left/right
-    const buttonHeight = 80;  // Font height boundaries + 10px padding on top/bottom
-
-    // --- ACCURATE COLLISION DETECTION ---
-    if (mouseX >= buttonX &&
-        mouseX <= buttonX + buttonWidth &&
-        mouseY >= buttonY && 
-        mouseY <= buttonY + buttonHeight) {
         
         console.log("Start text clicked! Initiating game...");
         startmusic.pause();
@@ -457,7 +439,7 @@ function handler(event){
         } else if (document.documentElement.webkitRequestFullscreen) { /* Safari support */
             document.documentElement.webkitRequestFullscreen()
         }
-    }
+
 }
 
 canvas.addEventListener('click', handler);
