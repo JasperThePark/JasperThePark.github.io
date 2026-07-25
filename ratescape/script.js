@@ -2395,6 +2395,7 @@ function animate(currentTime) {
             winkygrid = JSON.parse(JSON.stringify(maps2[idx]));
             darkgrid = JSON.parse(JSON.stringify(maps2[idx]));
             currentLevel+=1
+            wallsarr = []
             grid.forEach((row, y) => {
                 row.forEach((symbol, x) => {
                     // Calculate the exact center of this tile
