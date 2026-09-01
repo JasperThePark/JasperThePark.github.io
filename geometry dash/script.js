@@ -2288,8 +2288,7 @@ function animate(currentTime) {
   }
 }
   if(bossing && bossFrameIndex==22 &&blocks.length+spikes.length+circles.length+circlesB.length+circlesW.length+bombs.length+circlesP.length==0){
-    pinkattack()
-    gravDir=-1
+    redattack()
   }
   if(bossing && isBossRed && bossspawns==4){
     blueattack()
@@ -2328,7 +2327,7 @@ function animate(currentTime) {
       if ((circle.position.x + 20)/ 2 < 0 && circle.lastPiece==true){
         circles.splice(i, 1);
         score+=1
-        if((score-lastboss)>=1){
+        if((score-lastboss)>=5){
           bossing = true
           summonBoss();
           lastboss = score+11+8
