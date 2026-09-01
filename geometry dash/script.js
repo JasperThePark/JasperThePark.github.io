@@ -2275,7 +2275,7 @@ function animate(currentTime) {
     if (block.position.x + block.size / 2 < 0 && block.lastPiece){
       blocks.splice(i, 1);
       score += 1;
-      if ((score - lastboss) >= 1) {
+      if ((score - lastboss) >= 10) {
         bossing = true;
         lastboss = score + 9;
         summonBoss();
@@ -2309,7 +2309,7 @@ function animate(currentTime) {
         audioFiles.shield.currentTime = 0.6;
         audioFiles.shield.play()
         if(gravDir==1)player.velocity.y = -20; // ~1.5x normal jump
-        else player.velocity.y = 2
+        else player.velocity.y = 6
         spikeghost = true;
          spiketimer = 120;
           
@@ -2327,7 +2327,7 @@ function animate(currentTime) {
       if ((circle.position.x + 20)/ 2 < 0 && circle.lastPiece==true){
         circles.splice(i, 1);
         score+=1
-        if((score-lastboss)>=5){
+        if((score-lastboss)>=10){
           bossing = true
           summonBoss();
           lastboss = score+11+8
