@@ -241,6 +241,7 @@ for (let i = 0; i < 15; i++) {
   
   bossdipFrames.push(img);
 }
+
 let gameState = "MENU"; // "MENU" or "PLAYING"
 let showWarningModal = true;
 let allowFlashes = true; // Controlled by the warning modal
@@ -250,8 +251,6 @@ let gravDir = 1; // 1 is normal, -1 is inverted
 
 function toggleGravity() {
   gravDir *= -1; // Instantly flips the state
-
-  // 25 * -1 = -25 (shoots up). 25 * 1 = 25 (shoots down).
   player.velocity.y = 25 * gravDir; 
   onSomething = false;
 }
@@ -295,49 +294,56 @@ function drawRoundedRect(ctx, x, y, width, height, radius, fillStyle, strokeStyl
 }
 
 // ==========================================
-// DRAW LOGO ("Cubic Dash")
+// DRAW LOGO ("Cubic Dash") - Scale Aware
 // ==========================================
-function drawLogo(ctx, centerX, centerY) {
+function drawLogo(ctx, centerX, centerY, scale) {
   ctx.save();
 
   // 1. Draw Speed Trails behind cube
   ctx.strokeStyle = "#c0cadc";
-  ctx.lineWidth = 4;
-  const trailY = centerY + 10;
+  ctx.lineWidth = 4 * scale;
+  const trailY = centerY + (10 * scale);
   for (let i = 0; i < 3; i++) {
     ctx.beginPath();
-    ctx.moveTo(centerX - 240, trailY + i * 16);
-    ctx.lineTo(centerX - 130, trailY + i * 16);
+    ctx.moveTo(centerX - (240 * scale), trailY + (i * 16 * scale));
+    ctx.lineTo(centerX - (130 * scale), trailY + (i * 16 * scale));
     ctx.stroke();
   }
 
   // 2. Draw Tilted Cube Icon
   ctx.save();
-  ctx.translate(centerX - 145, centerY - 10);
-  ctx.rotate((30 * Math.PI) / 180); // 30-degree tilt
+  ctx.translate(centerX - (145 * scale), centerY - (10 * scale));
+  ctx.rotate((30 * Math.PI) / 180);
 
   // Outer Box
-  drawRoundedRect(ctx, -40, -40, 80, 80, 6, null, "#dce4f0", 10);
+  drawRoundedRect(ctx, -40 * scale, -40 * scale, 80 * scale, 80 * scale, 6 * scale, null, "#dce4f0", 10 * scale);
   // Inner Filled Box
-  drawRoundedRect(ctx, -35, -35, 70, 70, 4, "#0a2a66");
-  drawRoundedRect(ctx, -18, -18, 36, 36, 3, "#dce4f0");
+  drawRoundedRect(ctx, -35 * scale, -35 * scale, 70 * scale, 70 * scale, 4 * scale, "#0a2a66");
+  drawRoundedRect(ctx, -18 * scale, -18 * scale, 36 * scale, 36 * scale, 3 * scale, "#dce4f0");
   ctx.restore();
 
   // 3. Draw Title Text
   ctx.fillStyle = "#ffffff";
-  ctx.font = "900 64px sans-serif";
+  let titleFontSize = Math.max(32, Math.floor(64 * scale));
+  ctx.font = `900 ${titleFontSize}px sans-serif`;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText("Cubic Dash", centerX - 70, centerY + 10);
+  ctx.fillText("Cubic Dash", centerX - (70 * scale), centerY + (10 * scale));
 
   ctx.restore();
 }
 
 // ==========================================
-// MAIN MENU RENDER LOOP
+// MAIN MENU RENDER LOOP (Mobile Responsive)
 // ==========================================
 function drawMenu() {
   if (gameState !== "MENU") return;
+
+  // Calculate dynamic scale factor based on standard 800px reference width
+  const baseWidth = 800;
+  let scale = canvas.width / baseWidth;
+  // Prevent it from shrinking or blowing up too aggressively on extreme viewports
+  scale = Math.max(0.6, Math.min(scale, 1.5));
 
   const cx = canvas.width / 2;
   const cy = canvas.height / 2;
@@ -347,64 +353,73 @@ function drawMenu() {
   context.fillRect(0, 0, canvas.width, canvas.height);
 
   // 1. Draw Title Screen (Logo + Main Buttons)
-  drawLogo(context, cx, cy - 30);
+  drawLogo(context, cx, cy - (30 * scale), scale);
 
-  // Main Buttons Layout
-  const btnY = cy + 90;
-  
+  // Main Buttons Layout (Scaled)
+  const btnY = cy + (90 * scale);
+  const btnW1 = 125 * scale;
+  const btnW2 = 135 * scale;
+  const btnH = 50 * scale;
+  const btnRadius = 16 * scale;
+  const fontSize = Math.max(16, Math.floor(28 * scale));
+
   // Skins Button (Dark Pill)
-  buttons.skins = { x: cx - 140, y: btnY, w: 125, h: 50 };
-  drawRoundedRect(context, buttons.skins.x, buttons.skins.y, buttons.skins.w, buttons.skins.h, 16, "#0d224d");
+  buttons.skins = { x: cx - (140 * scale), y: btnY, w: btnW1, h: btnH };
+  drawRoundedRect(context, buttons.skins.x, buttons.skins.y, buttons.skins.w, buttons.skins.h, btnRadius, "#0d224d");
   context.fillStyle = "#ffffff";
-  context.font = "bold 28px sans-serif";
+  context.font = `bold ${fontSize}px sans-serif`;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText("Skins", buttons.skins.x + buttons.skins.w / 2, buttons.skins.y + buttons.skins.h / 2);
 
   // Start Button (Light Pill)
-  buttons.start = { x: cx + 5, y: btnY, w: 135, h: 50 };
-  drawRoundedRect(context, buttons.start.x, buttons.start.y, buttons.start.w, buttons.start.h, 16, "#dce4f0");
+  buttons.start = { x: cx + (5 * scale), y: btnY, w: btnW2, h: btnH };
+  drawRoundedRect(context, buttons.start.x, buttons.start.y, buttons.start.w, buttons.start.h, btnRadius, "#dce4f0");
   context.fillStyle = "#0a2a66";
   context.fillText("Start", buttons.start.x + buttons.start.w / 2, buttons.start.y + buttons.start.h / 2);
 
   // 2. Draw Warning Modal Overlay (if active)
   if (showWarningModal) {
-    // Semi-transparent backdrop
     context.fillStyle = "rgba(0, 0, 0, 0.55)";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Dark Modal Box
-    const modalW = 420;
-    const modalH = 220;
+    // Dark Modal Box (Scaled to fit smaller screen widths safely)
+    const modalW = Math.min(canvas.width * 0.9, 420 * scale);
+    const modalH = 220 * scale;
     const modalX = cx - modalW / 2;
     const modalY = cy - modalH / 2;
 
-    drawRoundedRect(context, modalX, modalY, modalW, modalH, 18, "#111116", "#22222a", 2);
+    drawRoundedRect(context, modalX, modalY, modalW, modalH, 18 * scale, "#111116", "#22222a", 2 * scale);
 
     // Warning Text
     context.fillStyle = "#ff1a1a";
-    context.font = "bold 15px sans-serif";
+    let warningFontSize = Math.max(12, Math.floor(15 * scale));
+    context.font = `bold ${warningFontSize}px sans-serif`;
     context.textAlign = "left";
     context.textBaseline = "top";
 
     const warningText = "WARNING: This game contains bright, flashing lights that may trigger seizures for people with photosensitive epilepsy.";
-    wrapText(context, warningText, modalX + 28, modalY + 24, modalW - 56, 20);
+    wrapText(context, warningText, modalX + (28 * scale), modalY + (24 * scale), modalW - (56 * scale), 20 * scale);
 
     // Modal Action Buttons
-    const modalBtnY = modalY + modalH - 62;
+    const modalBtnY = modalY + modalH - (62 * scale);
+    const modalBtnW = (modalW - (68 * scale)) / 2;
+    const modalBtnH = 44 * scale;
+    const modalBtnRadius = 10 * scale;
+    const modalBtnFontSize = Math.max(13, Math.floor(17 * scale));
 
     // "Turn it Off" Button (Dark Grey)
-    buttons.modalOff = { x: modalX + 28, y: modalBtnY, w: 170, h: 44 };
-    drawRoundedRect(context, buttons.modalOff.x, buttons.modalOff.y, buttons.modalOff.w, buttons.modalOff.h, 10, "#383838");
+    buttons.modalOff = { x: modalX + (28 * scale), y: modalBtnY, w: modalBtnW, h: modalBtnH };
+    drawRoundedRect(context, buttons.modalOff.x, buttons.modalOff.y, buttons.modalOff.w, buttons.modalOff.h, modalBtnRadius, "#383838");
     context.fillStyle = "#ffffff";
-    context.font = "bold 17px sans-serif";
+    context.font = `bold ${modalBtnFontSize}px sans-serif`;
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText("Turn it Off", buttons.modalOff.x + buttons.modalOff.w / 2, buttons.modalOff.y + buttons.modalOff.h / 2);
 
     // "Keep it on" Button (Bright Red)
-    buttons.modalOn = { x: modalX + 218, y: modalBtnY, w: 170, h: 44 };
-    drawRoundedRect(context, buttons.modalOn.x, buttons.modalOn.y, buttons.modalOn.w, buttons.modalOn.h, 10, "#d90404");
+    buttons.modalOn = { x: modalX + (36 * scale) + modalBtnW, y: modalBtnY, w: modalBtnW, h: modalBtnH };
+    drawRoundedRect(context, buttons.modalOn.x, buttons.modalOn.y, buttons.modalOn.w, buttons.modalOn.h, modalBtnRadius, "#d90404");
     context.fillStyle = "#ffffff";
     context.fillText("Keep it on", buttons.modalOn.x + buttons.modalOn.w / 2, buttons.modalOn.y + buttons.modalOn.h / 2);
   }
@@ -433,26 +448,25 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 }
 
 // ==========================================
-// MOUSE CLICK & INTERACTION HANDLER
+// UNIFIED INTERACTION HANDLER (Mouse + Touch)
 // ==========================================
-canvas.addEventListener("click", (e) => {
+function handleMenuInteraction(clientX, clientY) {
   if (gameState !== "MENU") return;
 
   const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
+  const clickX = clientX - rect.left;
+  const clickY = clientY - rect.top;
 
-  // Helper to test button bounds
-  const isInside = (btn) => mouseX >= btn.x && mouseX <= btn.x + btn.w && mouseY >= btn.y && mouseY <= btn.y + btn.h;
+  const isInside = (btn) => clickX >= btn.x && clickX <= btn.x + btn.w && clickY >= btn.y && clickY <= btn.y + btn.h;
 
   // 1. Modal Active Interactions
   if (showWarningModal) {
     if (isInside(buttons.modalOff)) {
       allowFlashes = false;
-      showWarningModal = false; // Close modal
+      showWarningModal = false;
     } else if (isInside(buttons.modalOn)) {
       allowFlashes = true;
-      showWarningModal = false; // Close modal
+      showWarningModal = false;
     }
     return;
   }
@@ -461,15 +475,27 @@ canvas.addEventListener("click", (e) => {
   if (isInside(buttons.start)) {
     gameState = "PLAYING";
     
-    // Start main gameplay loop
     if (typeof animate === "function") {
       requestAnimationFrame(animate);
     }
   } else if (isInside(buttons.skins)) {
     console.log("Skins button clicked!");
-    // Open skin menu logic here
   }
+}
+
+// Mouse Click Support
+canvas.addEventListener("click", (e) => {
+  handleMenuInteraction(e.clientX, e.clientY);
 });
+
+// Mobile Touch Support (Uses first touch coordinate and prevents default scrolling lag)
+canvas.addEventListener("touchstart", (e) => {
+  if (e.touches.length > 0) {
+    const touch = e.touches[0];
+    handleMenuInteraction(touch.clientX, touch.clientY);
+    e.preventDefault(); // Prevents double-firing mouse events and screen bouncing
+  }
+}, { passive: false });
 
 // Start the title screen on page load
 drawMenu();
